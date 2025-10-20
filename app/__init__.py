@@ -38,14 +38,6 @@ def create_app():
     login_manager.init_app(app)
     csrf.init_app(app)
 
-    # Optionally initialize MongoDB indexes if Mongo is configured
-    try:
-        from .mongo import ensure_indexes  # type: ignore
-        ensure_indexes()
-    except Exception as e:
-        # Don't crash the app if Mongo is not installed/configured
-        print(f"[Mongo] Skipping index initialization: {e}")
-
     # Make csrf_token() available in all templates
     @app.context_processor
     def inject_csrf_token():
