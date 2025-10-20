@@ -9,6 +9,7 @@ from .models import Exercise
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
 from flask import Blueprint
+from .mongo import get_collection, mongo_enabled  # optional MongoDB
 
 from flask import current_app as app
 from flask_login import LoginManager
@@ -195,6 +196,23 @@ def new_workout():
         db.session.add(workout)
         db.session.commit()
 
+        # Mirror to MongoDB (optional)
+        try:
+            if mongo_enabled():
+                workouts_col = get_collection("workouts")
+                if workouts_col:
+                    workouts_col.insert_one({
+                        "sqlWorkoutId": workout.id,
+                        "userId": current_user.id,
+                        "name": workout.name,
+                        "notes": workout.notes,
+                        "date": workout.date,
+                        "duration": workout.duration,
+                        "exercises": []  # will be appended as exercises/sets are added
+                    })
+        except Exception as e:
+            print(f"[Mongo] Failed to mirror new workout: {e}")
+
         # If a quick template was selected, pre-populate some exercises
         template = request.form.get('template', '').strip()
         if template:
@@ -313,6 +331,24 @@ def add_exercise_to_workout(workout_id):
     )
     db.session.add(workout_exercise)
     db.session.commit()
+
+    # Mirror exercise addition to MongoDB document
+    try:
+        if mongo_enabled():
+            workouts_col = get_collection("workouts")
+            if workouts_col:
+                workouts_col.update_one(
+                    {"sqlWorkoutId": workout_id, "userId": current_user.id},
+                    {"$push": {"exercises": {
+                        "exerciseId": exercise_id,
+                        "name": exercise.name,
+                        "category": exercise.category,
+                        "order": max_order + 1,
+                        "sets": []
+                    }}}
+                )
+    except Exception as e:
+        print(f"[Mongo] Failed to mirror add_exercise: {e}")
     
     return jsonify({
         'success': True, 
@@ -344,6 +380,33 @@ def add_set(workout_exercise_id):
     )
     db.session.add(exercise_set)
     db.session.commit()
+
+    # Mirror set addition to MongoDB document (append to last matching exercise by order)
+    try:
+        if mongo_enabled():
+            workouts_col = get_collection("workouts")
+            if workouts_col:
+                we = workout_exercise
+                set_doc = {
+                    "setNumber": exercise_set.set_number,
+                    "reps": exercise_set.reps,
+                    "weight": exercise_set.weight,
+                    "duration": exercise_set.duration,
+                    "distance": exercise_set.distance,
+                    "completed": True
+                }
+                # Match exercise by exerciseId and order to push set
+                workouts_col.update_one(
+                    {
+                        "sqlWorkoutId": we.workout_id,
+                        "userId": we.workout.user_id,
+                        "exercises.exerciseId": we.exercise_id,
+                        "exercises.order": we.order
+                    },
+                    {"$push": {"exercises.$.sets": set_doc}}
+                )
+    except Exception as e:
+        print(f"[Mongo] Failed to mirror add_set: {e}")
     
     return jsonify({
         'success': True,
@@ -468,6 +531,27 @@ def water():
 # ============================================
 # AI COACH ROUTES
 # ============================================
+
+@app.route('/health/mongo')
+@login_required
+def mongo_health():
+    """Lightweight health check for MongoDB (optional).
+
+    Returns JSON with enabled flag and ping result if configured.
+    """
+    try:
+        enabled = mongo_enabled()
+        if not enabled:
+            return jsonify({"enabled": False, "ok": False, "reason": "MONGODB_URI not configured"}), 200
+        col = get_collection("__health__")
+        if not col:
+            return jsonify({"enabled": True, "ok": False, "reason": "DB not available"}), 200
+        # Use ping command via database command
+        db = col.database
+        db.command("ping")
+        return jsonify({"enabled": True, "ok": True}), 200
+    except Exception as e:
+        return jsonify({"enabled": True, "ok": False, "error": str(e)}), 200
 
 @app.route('/ai-coach')
 @login_required

@@ -10,3 +10,4 @@ transformers
 torch
 requests 
 python-dotenv
+pymongo>=4.6.0
