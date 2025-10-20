@@ -56,8 +56,10 @@ The primary objectives of this project are:
 **AI and Machine Learning:**
 - **Hugging Face Transformers** - Pre-trained language models for AI fitness coaching
 - **Hugging Face Hub** - Model repository and API integration
+- **Meta Llama-4-Scout-17B-16E-Instruct** - Primary LLM model for personalized fitness recommendations and conversational AI
+- **Alternative: Mistral-7B-Instruct-v0.2** - Fallback model for text generation
 - **PyTorch/TensorFlow** - Deep learning frameworks for model inference
-- **Natural Language Processing** - Text generation for personalized fitness advice
+- **Natural Language Processing** - Text generation for personalized fitness advice and motivation
 
 **Additional Libraries:**
 - **Python-dotenv** - Environment variable management for API keys
@@ -834,12 +836,14 @@ The application successfully prevents common web vulnerabilities:
 - Session management ensures secure user authentication
 
 #### 7. **AI Integration Success**
-The integration of Hugging Face transformers for AI-powered fitness coaching demonstrates the practical application of natural language processing in health and wellness applications. The AI coach successfully:
-- Generates personalized workout recommendations based on user goals and fitness level
-- Provides form guidance and exercise safety tips using pre-trained language models
-- Offers motivational support tailored to individual user profiles
-- Adapts responses based on user's current progress and historical data
-- Utilizes the Hugging Face Hub API for efficient model inference without heavy local computation
+The integration of Hugging Face transformers for AI-powered fitness coaching demonstrates the practical application of natural language processing in health and wellness applications. The system utilizes **Meta Llama-4-Scout-17B-16E-Instruct**, a state-of-the-art large language model, accessed through the Hugging Face Inference API. The AI coach successfully:
+- Generates personalized workout recommendations based on user goals and fitness level using Meta's advanced language understanding
+- Provides form guidance and exercise safety tips leveraging the model's 17 billion parameters
+- Offers motivational support tailored to individual user profiles through contextual understanding
+- Adapts responses based on user's current progress, historical data, and real-time activity metrics
+- Utilizes the Hugging Face Hub API for efficient model inference without requiring heavy local GPU computation
+- Implements fallback to Mistral-7B-Instruct-v0.2 for reliability and cost optimization
+- Processes user context (age, weight, goals, recent activities) to deliver highly personalized fitness advice
 
 ### Challenges and Solutions
 
@@ -1191,17 +1195,21 @@ While current limitations exist, particularly in scalability, offline functional
 
 [9] T. Wolf et al., "Transformers: State-of-the-Art Natural Language Processing," in *Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations*, Online, Oct. 2020, pp. 38-45. doi: 10.18653/v1/2020.emnlp-demos.6
 
-[10] A. Paszke et al., "PyTorch: An Imperative Style, High-Performance Deep Learning Library," in *Advances in Neural Information Processing Systems 32*, H. Wallach et al., Eds. Curran Associates, Inc., 2019, pp. 8024-8035.
+[10] Meta AI, "Llama: Open Foundation and Fine-Tuned Chat Models," Meta AI Research, 2024. [Online]. Available: https://huggingface.co/meta-llama. [Accessed: Oct. 20, 2025].
 
-[11] P. J. Skerrett and W. C. Willett, "Essentials of Healthy Eating: A Guide," *Journal of Midwifery & Women's Health*, vol. 55, no. 6, pp. 492-501, Nov. 2010. doi: 10.1016/j.jmwh.2010.06.019
+[11] A. Paszke et al., "PyTorch: An Imperative Style, High-Performance Deep Learning Library," in *Advances in Neural Information Processing Systems 32*, H. Wallach et al., Eds. Curran Associates, Inc., 2019, pp. 8024-8035.
 
-[12] M. Atkinson and M. Wilcox, "Gamification and Serious Games for Health," in *mHealth Multidisciplinary Verticals*, Boca Raton, FL: CRC Press, 2014, pp. 241-251.
+[12] P. J. Skerrett and W. C. Willett, "Essentials of Healthy Eating: A Guide," *Journal of Midwifery & Women's Health*, vol. 55, no. 6, pp. 492-501, Nov. 2010. doi: 10.1016/j.jmwh.2010.06.019
 
-[13] Flask-SQLAlchemy Documentation, "Flask-SQLAlchemy 3.1.x," Pallets Projects, 2024. [Online]. Available: https://flask-sqlalchemy.palletsprojects.com/. [Accessed: Oct. 20, 2025].
+[13] M. Atkinson and M. Wilcox, "Gamification and Serious Games for Health," in *mHealth Multidisciplinary Verticals*, Boca Raton, FL: CRC Press, 2014, pp. 241-251.
 
-[14] W. McKinney, *Python for Data Analysis*, 3rd ed. Sebastopol, CA: O'Reilly Media, 2022.
+[14] Mistral AI, "Mistral 7B: A 7-Billion Parameter Language Model," Mistral AI Documentation, 2023. [Online]. Available: https://huggingface.co/mistralai. [Accessed: Oct. 20, 2025].
 
-[15] D. Beazley and B. K. Jones, *Python Cookbook*, 3rd ed. Sebastopol, CA: O'Reilly Media, 2013.
+[15] Flask-SQLAlchemy Documentation, "Flask-SQLAlchemy 3.1.x," Pallets Projects, 2024. [Online]. Available: https://flask-sqlalchemy.palletsprojects.com/. [Accessed: Oct. 20, 2025].
+
+[16] W. McKinney, *Python for Data Analysis*, 3rd ed. Sebastopol, CA: O'Reilly Media, 2022.
+
+[17] D. Beazley and B. K. Jones, *Python Cookbook*, 3rd ed. Sebastopol, CA: O'Reilly Media, 2013.
 
 ---
 
@@ -1209,7 +1217,10 @@ While current limitations exist, particularly in scalability, offline functional
 
 **Project Type:** Web Application  
 **Built With:** Python Flask, SQLite, Bootstrap 5, Hugging Face Transformers  
-**AI Technology:** Natural Language Processing via Hugging Face Hub  
+**AI Models Used:** 
+- Primary: Meta Llama-4-Scout-17B-16E-Instruct (17B parameters)
+- Fallback: Mistral-7B-Instruct-v0.2 (7B parameters)  
+**AI Technology:** Natural Language Processing via Hugging Face Hub Inference API  
 **Target Users:** Anyone wanting to track their fitness journey with AI-powered guidance  
 **Repository:** https://github.com/jeswin562/fitsync  
 **Development Period:** 2024-2025  
@@ -1217,4 +1228,4 @@ While current limitations exist, particularly in scalability, offline functional
 
 ---
 
-**Keywords:** Fitness Tracking, Web Application, Flask, AI Coaching, Hugging Face, Machine Learning, Health Management, Habit Tracking, BMR Calculator, Data Visualization
+**Keywords:** Fitness Tracking, Web Application, Flask, AI Coaching, Meta Llama, Hugging Face, Large Language Models, Machine Learning, Natural Language Processing, Health Management, Habit Tracking, BMR Calculator, Data Visualization
