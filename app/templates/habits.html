@@ -1,0 +1,253 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mb-4">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <h2><i class="fa fa-list-check me-2"></i>Habit Tracker</h2>
+      <p class="text-muted mb-0">Build healthy habits and track your daily progress</p>
+    </div>
+    <div class="d-flex align-items-center">
+      <div class="avatar me-3">
+        {{ current_user.username[0].upper() }}
+      </div>
+      <div class="text-end">
+        <small class="text-muted">Today's Progress</small>
+        {% set completed = habits|selectattr('logs', 'defined')|map(attribute='logs')|map('length')|sum %}
+        {% set total = habits|length %}
+        {% set percent = (completed / total * 100) if total > 0 else 0 %}
+        <div class="h5 mb-0">{{ percent|round(0) }}%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Habit Form -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fa fa-plus-circle me-2"></i>Add New Habit</h5>
+  </div>
+  <div class="card-body">
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <div class="form-floating">
+            {{ form.name(class_='form-control', id='habit_name', placeholder='Habit name') }}
+            <label for="habit_name">Habit Name</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-floating">
+            {{ form.frequency(class_='form-select', id='habit_frequency') }}
+            <label for="habit_frequency">Frequency</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-floating">
+            {{ form.description(class_='form-control', id='habit_description', placeholder='Description') }}
+            <label for="habit_description">Description (optional)</label>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-success w-100 habit-add-btn">
+            <i class="fa fa-plus me-2"></i>Add
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Habits Grid -->
+<div class="row">
+  {% for habit in habits %}
+  <div class="col-md-6 col-lg-4 mb-4">
+    <div class="card habit-card h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="habit-icon">
+            {% if 'exercise' in habit.name.lower() or 'workout' in habit.name.lower() %}
+              <i class="fa fa-dumbbell fa-2x text-primary"></i>
+            {% elif 'water' in habit.name.lower() or 'drink' in habit.name.lower() %}
+              <i class="fa fa-tint fa-2x text-info"></i>
+            {% elif 'sleep' in habit.name.lower() or 'bed' in habit.name.lower() %}
+              <i class="fa fa-bed fa-2x text-secondary"></i>
+            {% elif 'read' in habit.name.lower() or 'book' in habit.name.lower() %}
+              <i class="fa fa-book fa-2x text-success"></i>
+            {% elif 'meditation' in habit.name.lower() or 'yoga' in habit.name.lower() %}
+              <i class="fa fa-pray fa-2x text-warning"></i>
+            {% elif 'walk' in habit.name.lower() or 'run' in habit.name.lower() %}
+              <i class="fa fa-walking fa-2x text-danger"></i>
+            {% else %}
+              <i class="fa fa-check-circle fa-2x text-muted"></i>
+            {% endif %}
+          </div>
+          <div class="habit-status">
+            {% if habit.logs %}
+              <span class="badge bg-success">Completed Today</span>
+            {% else %}
+              <span class="badge bg-secondary">Not Done</span>
+            {% endif %}
+          </div>
+        </div>
+        
+        <h5 class="card-title">{{ habit.name }}</h5>
+        <p class="card-text">
+          <small class="text-muted">
+            <i class="fa fa-calendar me-1"></i>{{ habit.frequency }}
+          </small>
+        </p>
+        
+        <div class="habit-progress mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <small class="text-muted">This Week</small>
+            <small class="text-muted">{{ habit.logs|length }}/7</small>
+          </div>
+          <div class="progress" style="height: 8px;">
+            {% set week_progress = (habit.logs|length / 7 * 100) %}
+            <div class="progress-bar bg-success habit-progress-bar" role="progressbar" style="width: 0%;" data-progress="{{ week_progress }}"
+                 aria-valuenow="{{ week_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center">
+          <small class="text-muted">
+            <i class="fa fa-clock me-1"></i>Created {{ habit.created_at.strftime('%b %d') }}
+          </small>
+          {% if not habit.logs %}
+            <a href="{{ url_for('check_habit', habit_id=habit.id) }}" class="btn btn-outline-success btn-sm">
+              <i class="fa fa-check me-1"></i>Mark Done
+            </a>
+          {% else %}
+            <button class="btn btn-success btn-sm" disabled>
+              <i class="fa fa-check me-1"></i>Done
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <div class="text-center text-muted py-5">
+      <i class="fa fa-list-check fa-4x mb-3"></i>
+      <h5>No habits yet</h5>
+      <p>Start building healthy habits by adding your first one above!</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Weekly Progress Chart -->
+{% if habits %}
+<div class="card mt-4">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fa fa-chart-bar me-2"></i>Weekly Habit Progress</h5>
+  </div>
+  <div class="card-body">
+    <div class="chart-container">
+      <canvas id="habitChart"></canvas>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<style>
+.habit-card {
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.habit-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  border-color: var(--bs-primary);
+}
+
+.habit-icon {
+  transition: all 0.3s ease;
+}
+
+.habit-card:hover .habit-icon {
+  transform: scale(1.1);
+}
+
+.fa-pray::before {
+  content: "🧘";
+}
+
+.fa-walking::before {
+  content: "🚶";
+}
+
+.fa-bed::before {
+  content: "🛏️";
+}
+
+.fa-book::before {
+  content: "📚";
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Apply habit progress widths
+  document.querySelectorAll('.habit-progress-bar[data-progress]')
+    .forEach(function(bar){
+      const val = parseFloat(bar.getAttribute('data-progress'));
+      if (!isNaN(val)) bar.style.width = `${Math.max(0, Math.min(100, val))}%`;
+    });
+});
+document.addEventListener('DOMContentLoaded', function() {
+  // Add floating label behavior
+  const inputs = document.querySelectorAll('.form-control, .form-select');
+  inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.parentElement.classList.add('focused');
+    });
+    input.addEventListener('blur', function() {
+      if (!this.value) {
+        this.parentElement.parentElement.classList.remove('focused');
+      }
+    });
+  });
+  
+  // Weekly Habit Chart
+  const ctx = document.getElementById('habitChart');
+  if (ctx) {
+    new Chart(ctx.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Habits Completed',
+          data: [3, 4, 2, 5, 3, 4, 6],
+          borderColor: '#28a745',
+          backgroundColor: 'rgba(40, 167, 69, 0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 10,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %} 

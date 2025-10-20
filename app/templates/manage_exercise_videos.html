@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="fa fa-video me-2"></i>Exercise Videos</h4>
+    <a href="{{ url_for('workouts') }}" class="btn btn-secondary">Back to Workouts</a>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p class="text-muted">Set or update a how-to video URL for each exercise. We support:</p>
+      <ul class="text-muted small mb-3">
+        <li><strong>YouTube:</strong> https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID</li>
+        <li><strong>Vimeo:</strong> https://vimeo.com/VIDEO_ID</li>
+      </ul>
+      <div class="alert alert-info small">
+        <i class="fa fa-lightbulb me-1"></i>
+        <strong>Tip:</strong> Vimeo embeds work better on restricted networks. If YouTube is blocked, try Vimeo instead!
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th style="min-width: 160px;">Exercise</th>
+              <th>Category</th>
+              <th>Current Video</th>
+              <th style="min-width: 360px;">Update</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ex in exercises %}
+            <tr>
+              <td><strong>{{ ex.name }}</strong></td>
+              <td><span class="badge bg-primary">{{ ex.category }}</span></td>
+              <td>
+                {% if ex.video_url %}
+                  <a href="{{ ex.video_url }}" target="_blank" rel="noopener">Open</a>
+                {% else %}
+                  <span class="text-muted">None</span>
+                {% endif %}
+              </td>
+              <td>
+                <form method="POST" class="d-flex gap-2">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="exercise_id" value="{{ ex.id }}">
+                  <input type="url" name="video_url" class="form-control" placeholder="https://www.youtube.com/watch?v=..." value="{{ ex.video_url or '' }}">
+                  <button type="submit" class="btn btn-success">Save</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

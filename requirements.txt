@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+Flask-WTF
+Flask-Login
+Flask-Bootstrap
+Werkzeug
+email-validator
+huggingface-hub
+transformers
+torch
+requests 
+python-dotenv

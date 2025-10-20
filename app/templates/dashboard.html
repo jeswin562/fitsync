@@ -1,0 +1,339 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mb-4">
+  <div class="d-flex align-items-center mb-3">
+    <div class="avatar avatar-large me-3">
+      {{ current_user.username[0].upper() }}
+    </div>
+    <div>
+      <h2 class="mb-1">Welcome back, {{ current_user.username|capitalize }}!</h2>
+      <p class="text-muted mb-0">Keep up the great work! <i class="fa fa-fire text-danger pulse"></i></p>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card stats-card h-100">
+      <div class="card-body d-flex flex-column align-items-center">
+        <i class="fa fa-list-check fa-2x mb-2"></i>
+        <h5 class="card-title">Habits</h5>
+        <h3 class="mb-0">{{ habits|length }}</h3>
+        <small>Total Habits</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card stats-card h-100">
+      <div class="card-body d-flex flex-column align-items-center">
+        <i class="fa fa-dumbbell fa-2x mb-2"></i>
+        <h5 class="card-title">Exercises</h5>
+        <h3 class="mb-0">{{ exercises|length }}</h3>
+        <small>Workouts Logged</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card stats-card h-100">
+      <div class="card-body d-flex flex-column align-items-center">
+        <i class="fa fa-tint fa-2x mb-2"></i>
+        <h5 class="card-title">Water</h5>
+        <h3 class="mb-0">{{ (total_water/1000)|round(1) }}L</h3>
+        <small>Today's Intake</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card stats-card h-100">
+      <div class="card-body d-flex flex-column align-items-center">
+        <i class="fa fa-bolt fa-2x mb-2"></i>
+        <h5 class="card-title">Calories</h5>
+        {% if remaining_calories is not none %}
+          <h3 class="mb-0">{{ remaining_calories|round(0) }}</h3>
+          <small>Remaining Today</small>
+        {% else %}
+          <div class="text-muted">Set up profile</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress Charts Row -->
+<div class="row mb-4">
+  <div class="col-md-6 mb-3">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="card-title mb-0"><i class="fa fa-chart-line me-2"></i>Weekly Progress</h5>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="weeklyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 mb-3">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="card-title mb-0"><i class="fa fa-chart-pie me-2"></i>Calorie Distribution</h5>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="calorieChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress Bars -->
+<div class="row mb-4">
+  <div class="col-md-4 mb-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-target me-2"></i>Today's Habit Progress</h5>
+        {% set completed = habits|selectattr('logs', 'defined')|map(attribute='logs')|map('length')|sum %}
+        {% set total = habits|length %}
+        {% set percent = (completed / total * 100) if total > 0 else 0 %}
+        <div class="progress mb-2" style="height: 24px;">
+          <div class="progress-bar bg-primary" role="progressbar" style="width: {{ percent }}%;" aria-valuenow="{{ percent }}" aria-valuemin="0" aria-valuemax="100">{{ percent|round(0) }}%</div>
+        </div>
+        <small>{{ completed }} of {{ total }} habits checked today</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-fire me-2"></i>Today's Calorie Balance</h5>
+        {% if remaining_calories is not none %}
+          {% set cal_percent = (remaining_calories / tdee * 100) %}
+          {% set bar_color = 'bg-success' if remaining_calories > 0 else 'bg-danger' %}
+          <div class="progress mb-2" style="height: 24px;">
+            <div class="progress-bar {{ bar_color }}" role="progressbar" style="width: {{ cal_percent if cal_percent < 100 else 100 }}%;" aria-valuenow="{{ cal_percent }}" aria-valuemin="0" aria-valuemax="100">{{ remaining_calories|round(0) }} kcal remaining</div>
+          </div>
+          <small>Goal: {{ tdee|round(0) }} kcal | Remaining: {{ remaining_calories|round(0) }} kcal</small>
+        {% else %}
+          <div class="text-muted">Complete your profile to see calorie balance</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-tint me-2"></i>Today's Water Intake</h5>
+        {% set water_goal = 2500 %}  <!-- 2.5L daily goal -->
+        {% set water_percent = (total_water / water_goal * 100) %}
+        <div class="progress mb-2" style="height: 24px;">
+          <div class="progress-bar bg-info" role="progressbar" style="width: {{ water_percent if water_percent < 100 else 100 }}%;" aria-valuenow="{{ water_percent }}" aria-valuemin="0" aria-valuemax="100">{{ (total_water/1000)|round(1) }}L</div>
+        </div>
+        <small>Goal: 2.5L | Current: {{ (total_water/1000)|round(1) }}L</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Daily Food Diary -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0"><i class="fa fa-calendar-day me-2"></i>Today's Food Diary</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <!-- Breakfast -->
+          <div class="col-md-3">
+            <div class="text-center mb-3">
+              <i class="fa fa-sun fa-2x text-primary mb-2"></i>
+              <h6 class="text-primary">Breakfast</h6>
+            </div>
+            {% set breakfast_foods = foods|selectattr('meal_type', 'equalto', 'breakfast')|list %}
+            {% if breakfast_foods %}
+              <ul class="list-unstyled">
+                {% for food in breakfast_foods %}
+                  <li class="mb-2 p-2 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong>{{ food.food.name }}</strong>
+                        <br><small class="text-muted">{{ food.total_calories|round(0) }} cal</small>
+                      </div>
+                      <span class="badge bg-primary">{{ food.servings }}x</span>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="text-center text-muted py-3">
+                <i class="fa fa-coffee fa-2x mb-2"></i>
+                <p class="mb-0">No breakfast logged</p>
+              </div>
+            {% endif %}
+          </div>
+          
+          <!-- Lunch -->
+          <div class="col-md-3">
+            <div class="text-center mb-3">
+              <i class="fa fa-cloud-sun fa-2x text-warning mb-2"></i>
+              <h6 class="text-warning">Lunch</h6>
+            </div>
+            {% set lunch_foods = foods|selectattr('meal_type', 'equalto', 'lunch')|list %}
+            {% if lunch_foods %}
+              <ul class="list-unstyled">
+                {% for food in lunch_foods %}
+                  <li class="mb-2 p-2 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong>{{ food.food.name }}</strong>
+                        <br><small class="text-muted">{{ food.total_calories|round(0) }} cal</small>
+                      </div>
+                      <span class="badge bg-warning">{{ food.servings }}x</span>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="text-center text-muted py-3">
+                <i class="fa fa-utensils fa-2x mb-2"></i>
+                <p class="mb-0">No lunch logged</p>
+              </div>
+            {% endif %}
+          </div>
+          
+          <!-- Snack -->
+          <div class="col-md-3">
+            <div class="text-center mb-3">
+              <i class="fa fa-cookie-bite fa-2x text-success mb-2"></i>
+              <h6 class="text-success">Snack</h6>
+            </div>
+            {% set snack_foods = foods|selectattr('meal_type', 'equalto', 'snack')|list %}
+            {% if snack_foods %}
+              <ul class="list-unstyled">
+                {% for food in snack_foods %}
+                  <li class="mb-2 p-2 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong>{{ food.food.name }}</strong>
+                        <br><small class="text-muted">{{ food.total_calories|round(0) }} cal</small>
+                      </div>
+                      <span class="badge bg-success">{{ food.servings }}x</span>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="text-center text-muted py-3">
+                <i class="fa fa-cookie fa-2x mb-2"></i>
+                <p class="mb-0">No snacks logged</p>
+              </div>
+            {% endif %}
+          </div>
+          
+          <!-- Dinner -->
+          <div class="col-md-3">
+            <div class="text-center mb-3">
+              <i class="fa fa-moon fa-2x text-dark mb-2"></i>
+              <h6 class="text-dark">Dinner</h6>
+            </div>
+            {% set dinner_foods = foods|selectattr('meal_type', 'equalto', 'dinner')|list %}
+            {% if dinner_foods %}
+              <ul class="list-unstyled">
+                {% for food in dinner_foods %}
+                  <li class="mb-2 p-2 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong>{{ food.food.name }}</strong>
+                        <br><small class="text-muted">{{ food.total_calories|round(0) }} cal</small>
+                      </div>
+                      <span class="badge bg-dark">{{ food.servings }}x</span>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="text-center text-muted py-3">
+                <i class="fa fa-moon fa-2x mb-2"></i>
+                <p class="mb-0">No dinner logged</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Weekly Progress Chart
+  const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+  new Chart(weeklyCtx, {
+    type: 'line',
+    data: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      datasets: [{
+        label: 'Calories Burned',
+        data: [450, 520, 380, 600, 480, 550, 420],
+        borderColor: '#007bff',
+        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+        tension: 0.4,
+        fill: true
+      }, {
+        label: 'Calories Consumed',
+        data: [1800, 1900, 1700, 2100, 1850, 2000, 1750],
+        borderColor: '#28a745',
+        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // Calorie Distribution Chart
+  const calorieCtx = document.getElementById('calorieChart').getContext('2d');
+  new Chart(calorieCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Breakfast', 'Lunch', 'Snack', 'Dinner'],
+      datasets: [{
+        data: [400, 600, 200, 800],
+        backgroundColor: [
+          '#007bff',
+          '#ffc107',
+          '#28a745',
+          '#343a40'
+        ],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+        }
+      }
+    }
+  });
+});
+</script>
+{% endblock %} 

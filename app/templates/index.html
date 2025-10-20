@@ -1,0 +1,221 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="text-center py-5">
+  <div class="mb-5">
+    <div class="avatar avatar-large mx-auto mb-4">
+      <i class="fa fa-dumbbell"></i>
+    </div>
+    <h1 class="display-4 mb-3">Welcome to FitSync</h1>
+    <p class="lead text-muted mb-4">Your personal companion for building healthy habits and achieving fitness goals</p>
+    
+    {% if current_user.is_authenticated %}
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+          <i class="fa fa-chart-line me-2"></i>Go to Dashboard
+        </a>
+        <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-lg">
+          <i class="fa fa-user me-2"></i>View Profile
+        </a>
+      </div>
+    {% else %}
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+          <i class="fa fa-sign-in-alt me-2"></i>Get Started
+        </a>
+        <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg">
+          <i class="fa fa-user-plus me-2"></i>Sign Up
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Features Section -->
+<div class="row mb-5">
+  <div class="col-md-4 mb-4">
+    <div class="card h-100 feature-card">
+      <div class="card-body text-center">
+        <div class="feature-icon mb-3">
+          <i class="fa fa-chart-line fa-3x text-primary"></i>
+        </div>
+        <h5 class="card-title">Smart Tracking</h5>
+        <p class="card-text">Track your calories, exercise, water intake, and habits with intelligent insights and progress visualization.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-4">
+    <div class="card h-100 feature-card">
+      <div class="card-body text-center">
+        <div class="feature-icon mb-3">
+          <i class="fa fa-utensils fa-3x text-success"></i>
+        </div>
+        <h5 class="card-title">Indian Food Database</h5>
+        <p class="card-text">Comprehensive database of Indian foods with accurate calorie information and nutritional data.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-4">
+    <div class="card h-100 feature-card">
+      <div class="card-body text-center">
+        <div class="feature-icon mb-3">
+          <i class="fa fa-target fa-3x text-warning"></i>
+        </div>
+        <h5 class="card-title">Goal Setting</h5>
+        <p class="card-text">Set personalized fitness goals and track your progress with BMR/TDEE calculations and smart recommendations.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Section -->
+<div class="row mb-5">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fa fa-star me-2"></i>Why Choose Fitness Tracker?</h5>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <div class="col-md-3 mb-3">
+            <div class="stats-item">
+              <i class="fa fa-users fa-2x text-primary mb-2"></i>
+              <h4>100+</h4>
+              <p class="text-muted">Indian Foods</p>
+            </div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="stats-item">
+              <i class="fa fa-dumbbell fa-2x text-success mb-2"></i>
+              <h4>50+</h4>
+              <p class="text-muted">Exercise Types</p>
+            </div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="stats-item">
+              <i class="fa fa-chart-bar fa-2x text-warning mb-2"></i>
+              <h4>Real-time</h4>
+              <p class="text-muted">Progress Tracking</p>
+            </div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="stats-item">
+              <i class="fa fa-mobile-alt fa-2x text-info mb-2"></i>
+              <h4>Responsive</h4>
+              <p class="text-muted">Mobile Friendly</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- How It Works -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fa fa-play-circle me-2"></i>How It Works</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4 text-center mb-4">
+            <div class="step-item">
+              <div class="step-number">1</div>
+              <h6>Create Account</h6>
+              <p class="text-muted">Sign up and set up your profile with your fitness goals and preferences.</p>
+            </div>
+          </div>
+          <div class="col-md-4 text-center mb-4">
+            <div class="step-item">
+              <div class="step-number">2</div>
+              <h6>Track Daily</h6>
+              <p class="text-muted">Log your meals, exercises, water intake, and habits throughout the day.</p>
+            </div>
+          </div>
+          <div class="col-md-4 text-center mb-4">
+            <div class="step-item">
+              <div class="step-number">3</div>
+              <h6>See Progress</h6>
+              <p class="text-muted">Monitor your progress with beautiful charts and insights to stay motivated.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.feature-card {
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  border-color: var(--bs-primary);
+}
+
+.feature-icon {
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1);
+}
+
+.stats-item {
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.stats-item:hover {
+  transform: translateY(-5px);
+}
+
+.step-item {
+  padding: 20px;
+  position: relative;
+}
+
+.step-number {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--bs-primary), var(--bs-info));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 auto 20px;
+  transition: all 0.3s ease;
+}
+
+.step-item:hover .step-number {
+  transform: scale(1.1);
+}
+
+.display-4 {
+  font-weight: 300;
+}
+
+.lead {
+  font-size: 1.25rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add fade-in animation to all cards
+  const cards = document.querySelectorAll('.card');
+  cards.forEach((card, index) => {
+    card.style.animationDelay = `${index * 0.2}s`;
+    card.classList.add('fade-in');
+  });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,90 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="mb-0"><i class="fa fa-dumbbell me-2"></i>Start New Workout</h4>
+        </div>
+        <div class="card-body">
+          <form method="POST">
+            {{ form.hidden_tag() }}
+            <input type="hidden" id="template" name="template" value="">
+            
+            <div class="mb-3">
+              <label for="name" class="form-label">Workout Name</label>
+              {{ form.name(class='form-control', id='name', placeholder='e.g., Chest Day, Push Day, Full Body') }}
+              <div class="form-text">Give your workout a descriptive name</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="notes" class="form-label">Notes (Optional)</label>
+              {{ form.notes(class='form-control', rows='3', placeholder='Any pre-workout notes or goals...') }}
+            </div>
+            
+            <!-- Quick Templates -->
+            <div class="mb-3">
+              <label class="form-label">Quick Templates</label>
+              <div class="row" id="templateButtons">
+                <div class="col-6 mb-2">
+                  <button type="button" class="btn btn-outline-primary w-100" data-template="Chest Day" onclick="chooseTemplate(this)">
+                    <i class="fa fa-heart me-1"></i>Chest Day
+                  </button>
+                </div>
+                <div class="col-6 mb-2">
+                  <button type="button" class="btn btn-outline-primary w-100" data-template="Back Day" onclick="chooseTemplate(this)">
+                    <i class="fa fa-expand me-1"></i>Back Day
+                  </button>
+                </div>
+                <div class="col-6 mb-2">
+                  <button type="button" class="btn btn-outline-primary w-100" data-template="Leg Day" onclick="chooseTemplate(this)">
+                    <i class="fa fa-walking me-1"></i>Leg Day
+                  </button>
+                </div>
+                <div class="col-6 mb-2">
+                  <button type="button" class="btn btn-outline-primary w-100" data-template="Arm Day" onclick="chooseTemplate(this)">
+                    <i class="fa fa-fist-raised me-1"></i>Arm Day
+                  </button>
+                </div>
+                <div class="col-6 mb-2">
+                  <button type="button" class="btn btn-outline-primary w-100" data-template="Shoulder Day" onclick="chooseTemplate(this)">
+                    <i class="fa fa-arrows-alt me-1"></i>Shoulders
+                  </button>
+                </div>
+                <div class="col-6 mb-2">
+                  <button type="button" class="btn btn-outline-primary w-100" data-template="Full Body" onclick="chooseTemplate(this)">
+                    <i class="fa fa-user me-1"></i>Full Body
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="{{ url_for('workouts') }}" class="btn btn-secondary">
+                <i class="fa fa-arrow-left me-1"></i>Back
+              </a>
+              {{ form.submit(class='btn btn-success btn-lg') }}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function chooseTemplate(btn) {
+  const nameInput = document.getElementById('name');
+  const hidden = document.getElementById('template');
+  const value = btn.getAttribute('data-template');
+  // fill name input
+  if (nameInput) nameInput.value = value;
+  // mark selected style
+  document.querySelectorAll('#templateButtons button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // set hidden field for server-side
+  hidden.value = value;
+}
+</script>
+{% endblock %}

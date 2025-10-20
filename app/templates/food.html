@@ -1,0 +1,391 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mb-4">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <h2><i class="fa fa-utensils me-2"></i>Food Diary</h2>
+      <p class="text-muted mb-0">Track your daily nutrition and calorie intake</p>
+    </div>
+    <div class="d-flex align-items-center">
+      <div class="avatar me-3">
+        {{ current_user.username[0].upper() }}
+      </div>
+      <div class="text-end">
+        <small class="text-muted">Today's Calories</small>
+        <div class="h5 mb-0">{{ (total_calories or 0)|round(0) }} / {{ (tdee or 0)|round(0) if tdee else 'Set Profile' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Search and Filter Section -->
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="GET">
+      <div class="row g-3 align-items-stretch">
+        <div class="col-md-5">
+          <div class="form-floating h-100">
+            <input type="text" class="form-control h-100" id="search" name="search" value="{{ search_query }}" placeholder="Search foods...">
+            <label for="search"><i class="fa fa-search me-2"></i>Search Foods</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating h-100">
+            <select class="form-select h-100" id="category" name="category">
+              <option value="">All Categories</option>
+              {% for category in categories %}
+                <option value="{{ category }}" {% if category == category_filter %}selected{% endif %}>
+                  {{ category }}
+                </option>
+              {% endfor %}
+            </select>
+            <label for="category"><i class="fa fa-filter me-2"></i>Category</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary w-100 h-100 d-flex align-items-center justify-content-center">
+            <i class="fa fa-search me-2"></i>Search
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Food Logging Form -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fa fa-plus-circle me-2"></i>Add Food to Diary</h5>
+  </div>
+  <div class="card-body">
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      <div class="row g-3 align-items-stretch">
+        <div class="col-md-3">
+          <div class="form-floating h-100">
+            {{ form.food(class_='form-select h-100', id='food') }}
+            <label for="food">Select Food</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-floating h-100">
+            {{ form.servings(class_='form-control h-100', id='servings', placeholder='Servings') }}
+            <label for="servings">Servings</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-floating h-100">
+            {{ form.meal_type(class_='form-select h-100', id='meal_type') }}
+            <label for="meal_type">Meal Type</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-success w-100 h-100 d-flex align-items-center justify-content-center">
+            <i class="fa fa-plus me-2"></i>Add
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Food Cards Grid -->
+<div class="row">
+  {% for food in all_foods %}
+  <div class="col-md-4 col-lg-3 mb-4">
+    <div class="card food-card h-100 selectable-food" data-food-id="{{ food.id }}" data-food-name="{{ food.name }}" data-calories="{{ food.calories_per_serving }}">
+      <div class="card-body text-center">
+        <div class="food-icon mb-3">
+          {% if food.category == 'Breakfast' %}
+            <i class="fa fa-sun fa-3x text-primary"></i>
+          {% elif food.category == 'Rice' %}
+            <i class="fa fa-bowl-rice fa-3x text-success"></i>
+          {% elif food.category == 'Bread' %}
+            <i class="fa fa-bread-slice fa-3x text-warning"></i>
+          {% elif food.category == 'Curry' %}
+            <i class="fa fa-pepper-hot fa-3x text-danger"></i>
+          {% elif food.category == 'Tandoori' %}
+            <i class="fa fa-fire fa-3x text-danger"></i>
+          {% elif food.category == 'Street Food' %}
+            <i class="fa fa-store fa-3x text-info"></i>
+          {% elif food.category == 'Dessert' %}
+            <i class="fa fa-ice-cream fa-3x text-pink"></i>
+          {% elif food.category == 'Beverage' %}
+            <i class="fa fa-mug-hot fa-3x text-brown"></i>
+          {% elif food.category == 'Snack' %}
+            <i class="fa fa-cookie-bite fa-3x text-success"></i>
+          {% elif food.category == 'Condiment' %}
+            <i class="fa fa-mortar-pestle fa-3x text-secondary"></i>
+          {% elif food.category == 'Regional' %}
+            <i class="fa fa-map-marker-alt fa-3x text-primary"></i>
+          {% else %}
+            <i class="fa fa-utensils fa-3x text-muted"></i>
+          {% endif %}
+        </div>
+        <h6 class="card-title">{{ food.name }}</h6>
+        <p class="card-text">
+          <span class="badge bg-primary me-2">{{ food.category }}</span>
+          <span class="badge bg-info">{{ food.calories_per_serving }} cal</span>
+        </p>
+        <div class="food-details">
+          <small class="text-muted">
+            <i class="fa fa-info-circle me-1"></i>
+            {{ food.serving_size }}
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <div class="text-center text-muted py-5">
+      <i class="fa fa-search fa-4x mb-3"></i>
+      <h5>No foods found</h5>
+      <p>Try adjusting your search terms or category filter</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Today's Food Log -->
+{% if foods %}
+<div class="card mt-4">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fa fa-calendar-day me-2"></i>Today's Food Diary</h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <!-- Breakfast -->
+      <div class="col-md-3">
+        <div class="text-center mb-3">
+          <i class="fa fa-sun fa-2x text-primary mb-2"></i>
+          <h6 class="text-primary">Breakfast</h6>
+        </div>
+        {% set breakfast_foods = foods|selectattr('meal_type', 'equalto', 'breakfast')|list %}
+        {% if breakfast_foods %}
+          <ul class="list-unstyled">
+            {% for food in breakfast_foods %}
+              <li class="mb-2 p-2 bg-light rounded">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ food.food.name }}</strong>
+                    <br><small class="text-muted">{{ food.total_calories|round(0) }} cal</small>
+                  </div>
+                  <span class="badge bg-primary">{{ food.servings }}x</span>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-center text-muted py-3">
+            <i class="fa fa-coffee fa-2x mb-2"></i>
+            <p class="mb-0">No breakfast logged</p>
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Lunch -->
+      <div class="col-md-3">
+        <div class="text-center mb-3">
+          <i class="fa fa-cloud-sun fa-2x text-warning mb-2"></i>
+          <h6 class="text-warning">Lunch</h6>
+        </div>
+        {% set lunch_foods = foods|selectattr('meal_type', 'equalto', 'lunch')|list %}
+        {% if lunch_foods %}
+          <ul class="list-unstyled">
+            {% for food in lunch_foods %}
+              <li class="mb-2 p-2 bg-light rounded">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ food.food.name }}</strong>
+                    <br><small class="text-muted">{{ food.total_calories|round(0) }} cal</small>
+                  </div>
+                  <span class="badge bg-warning">{{ food.servings }}x</span>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-center text-muted py-3">
+            <i class="fa fa-utensils fa-2x mb-2"></i>
+            <p class="mb-0">No lunch logged</p>
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Snack -->
+      <div class="col-md-3">
+        <div class="text-center mb-3">
+          <i class="fa fa-cookie-bite fa-2x text-success mb-2"></i>
+          <h6 class="text-success">Snack</h6>
+        </div>
+        {% set snack_foods = foods|selectattr('meal_type', 'equalto', 'snack')|list %}
+        {% if snack_foods %}
+          <ul class="list-unstyled">
+            {% for food in snack_foods %}
+              <li class="mb-2 p-2 bg-light rounded">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ food.food.name }}</strong>
+                    <br><small class="text-muted">{{ food.total_calories|round(0) }} cal</small>
+                  </div>
+                  <span class="badge bg-success">{{ food.servings }}x</span>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-center text-muted py-3">
+            <i class="fa fa-cookie fa-2x mb-2"></i>
+            <p class="mb-0">No snacks logged</p>
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Dinner -->
+      <div class="col-md-3">
+        <div class="text-center mb-3">
+          <i class="fa fa-moon fa-2x text-dark mb-2"></i>
+          <h6 class="text-dark">Dinner</h6>
+        </div>
+        {% set dinner_foods = foods|selectattr('meal_type', 'equalto', 'dinner')|list %}
+        {% if dinner_foods %}
+          <ul class="list-unstyled">
+            {% for food in dinner_foods %}
+              <li class="mb-2 p-2 bg-light rounded">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ food.food.name }}</strong>
+                    <br><small class="text-muted">{{ food.total_calories|round(0) }} cal</small>
+                  </div>
+                  <span class="badge bg-dark">{{ food.servings }}x</span>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-center text-muted py-3">
+            <i class="fa fa-moon fa-2x mb-2"></i>
+            <p class="mb-0">No dinner logged</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<style>
+.food-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.food-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  border-color: var(--bs-primary);
+}
+
+.food-card:active {
+  transform: translateY(-2px);
+}
+
+.food-icon {
+  transition: all 0.3s ease;
+}
+
+.food-card:hover .food-icon {
+  transform: scale(1.1);
+}
+
+.text-pink {
+  color: #e83e8c;
+}
+
+.text-brown {
+  color: #8B4513;
+}
+
+.fa-rice::before {
+  content: "🍚";
+}
+
+.fa-bread-slice::before {
+  content: "🍞";
+}
+
+.fa-pepper-hot::before {
+  content: "🌶️";
+}
+
+.fa-ice-cream::before {
+  content: "🍦";
+}
+</style>
+
+<script>
+// Replace inline onclicks with delegated listeners
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.selectable-food').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      const id = parseInt(card.getAttribute('data-food-id'));
+      const name = card.getAttribute('data-food-name');
+      const cal = parseFloat(card.getAttribute('data-calories'));
+      if (!isNaN(id) && !isNaN(cal)) selectFood(id, name, cal);
+    });
+  });
+});
+function selectFood(foodId, foodName, calories) {
+  document.getElementById('food').value = foodId;
+  document.getElementById('servings').focus();
+  
+  // Add visual feedback
+  const cards = document.querySelectorAll('.food-card');
+  cards.forEach(card => card.style.borderColor = 'transparent');
+  
+  const selectedCard = event.currentTarget;
+  selectedCard.style.borderColor = '#007bff';
+  
+  // Show notification
+  const toast = document.createElement('div');
+  toast.className = 'position-fixed top-0 end-0 p-3';
+  toast.style.zIndex = '1050';
+  toast.innerHTML = `
+    <div class="toast show" role="alert">
+      <div class="toast-header">
+        <i class="fa fa-check text-success me-2"></i>
+        <strong class="me-auto">Food Selected</strong>
+        <button type="button" class="btn-close" onclick="this.parentElement.parentElement.parentElement.remove()"></button>
+      </div>
+      <div class="toast-body">
+        ${foodName} (${calories} cal) selected. Enter servings and meal type.
+      </div>
+    </div>
+  `;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.remove();
+    }
+  }, 3000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Add floating label behavior
+  const inputs = document.querySelectorAll('.form-control, .form-select');
+  inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.parentElement.classList.add('focused');
+    });
+    input.addEventListener('blur', function() {
+      if (!this.value) {
+        this.parentElement.parentElement.classList.remove('focused');
+      }
+    });
+  });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,105 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mb-4">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <h2><i class="fa fa-dumbbell me-2"></i>Workout Tracker</h2>
+      <p class="text-muted mb-0">Track your workout sessions with sets, reps, and weights</p>
+    </div>
+    <div class="d-flex align-items-center">
+      <a href="{{ url_for('new_workout') }}" class="btn btn-success btn-lg">
+        <i class="fa fa-plus me-2"></i>Start New Workout
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Workout History -->
+<div class="row">
+  {% if workouts %}
+    {% for workout in workouts %}
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">{{ workout.name }}</h6>
+          <small class="text-muted">{{ workout.date.strftime('%b %d, %Y') }}</small>
+        </div>
+        <div class="card-body">
+          <div class="row text-center mb-3">
+            <div class="col-4">
+              <div class="stat-value">{{ workout.workout_exercises|length }}</div>
+              <div class="stat-label">Exercises</div>
+            </div>
+            <div class="col-4">
+              <div class="stat-value">
+                {% set total_sets = [] %}
+                {% for we in workout.workout_exercises %}
+                  {% set _ = total_sets.extend(we.sets) %}
+                {% endfor %}
+                {{ total_sets|length }}
+              </div>
+              <div class="stat-label">Sets</div>
+            </div>
+            <div class="col-4">
+              <div class="stat-value">{{ workout.duration or '0' }}</div>
+              <div class="stat-label">Minutes</div>
+            </div>
+          </div>
+          
+          <!-- Exercise Summary -->
+          <div class="exercise-summary">
+            {% for workout_exercise in workout.workout_exercises[:3] %}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-bold">{{ workout_exercise.exercise.name }}</span>
+              <span class="badge bg-primary">{{ workout_exercise.sets|length }} sets</span>
+            </div>
+            {% endfor %}
+            {% if workout.workout_exercises|length > 3 %}
+            <small class="text-muted">+{{ workout.workout_exercises|length - 3 }} more exercises</small>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-footer">
+          <a href="{{ url_for('workout_session', workout_id=workout.id) }}" class="btn btn-outline-primary btn-sm">
+            <i class="fa fa-eye me-1"></i>View Details
+          </a>
+          {% if workout.notes %}
+          <button class="btn btn-outline-info btn-sm" data-bs-toggle="tooltip" title="{{ workout.notes }}">
+            <i class="fa fa-note"></i>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="col-12">
+      <div class="text-center py-5">
+        <i class="fa fa-dumbbell fa-4x text-muted mb-3"></i>
+        <h4>No Workouts Yet</h4>
+        <p class="text-muted">Start your first workout to begin tracking your progress!</p>
+        <a href="{{ url_for('new_workout') }}" class="btn btn-success btn-lg">
+          <i class="fa fa-plus me-2"></i>Start Your First Workout
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #0d6efd;
+}
+.stat-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  text-transform: uppercase;
+}
+.exercise-summary {
+  max-height: 120px;
+  overflow-y: auto;
+}
+</style>
+{% endblock %}

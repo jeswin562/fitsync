@@ -1,0 +1,278 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mb-4">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <h2><i class="fa fa-tint me-2"></i>Water Tracker</h2>
+      <p class="text-muted mb-0">Stay hydrated and track your daily water intake</p>
+    </div>
+    <div class="d-flex align-items-center">
+      <div class="avatar me-3">
+        {{ current_user.username[0].upper() }}
+      </div>
+      <div class="text-end">
+        <small class="text-muted">Today's Intake</small>
+        <div class="h5 mb-0">{{ total_water|round(0) }} ml</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Water Progress Card -->
+<div class="row mb-4">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fa fa-chart-line me-2"></i>Daily Water Progress</h5>
+      </div>
+      <div class="card-body">
+  {% set water_goal = 2500 %}  <!-- 2.5L daily goal -->
+  {% set water_percent = (total_water / water_goal * 100) %}
+  {% set water_percent_clamped = 100 if water_percent > 100 else (0 if water_percent < 0 else water_percent) %}
+        <div class="text-center mb-4">
+          <div class="water-circle mx-auto mb-3" data-percent="{{ water_percent }}">
+            <div class="water-circle-inner">
+              <div class="water-circle-text">
+                <h3 class="mb-0">{{ (total_water/1000)|round(1) }}L</h3>
+                <small class="text-muted">of {{ (water_goal/1000)|round(1) }}L</small>
+              </div>
+            </div>
+          </div>
+          <div class="progress mb-3" style="height: 20px;">
+            <div class="progress-bar bg-info" role="progressbar" style="width: 0%;" data-progress="{{ water_percent_clamped }}"
+                 aria-valuenow="{{ water_percent_clamped }}" aria-valuemin="0" aria-valuemax="100">
+              {{ water_percent|round(0) }}%
+            </div>
+          </div>
+          <p class="text-muted mb-0">
+            {% if water_percent >= 100 %}
+              <i class="fa fa-check-circle text-success me-2"></i>Great job! You've reached your daily goal!
+            {% elif water_percent >= 75 %}
+              <i class="fa fa-thumbs-up text-info me-2"></i>Almost there! Keep going!
+            {% elif water_percent >= 50 %}
+              <i class="fa fa-arrow-up text-warning me-2"></i>Halfway there! You're doing great!
+            {% else %}
+              <i class="fa fa-tint text-primary me-2"></i>Keep drinking water to stay hydrated!
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fa fa-plus-circle me-2"></i>Add Water</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+          <div class="row g-2 align-items-stretch">
+            <div class="col-7">
+              <div class="form-floating h-100">
+                {{ form.amount(class_='form-control h-100', id='water_amount', placeholder='Water Amount (ml)') }}
+                <label for="water_amount">Water Amount (ml)</label>
+              </div>
+            </div>
+            <div class="col-5">
+              <button type="submit" class="btn btn-success w-100 h-100 d-flex align-items-center justify-content-center">
+                <i class="fa fa-plus me-2"></i>Log
+              </button>
+            </div>
+          </div>
+        </form>
+        
+        <!-- Quick Add Buttons -->
+        <div class="mt-3">
+          <h6 class="text-muted mb-2">Quick Add:</h6>
+          <div class="row g-2">
+            <div class="col-6">
+              <button class="btn btn-outline-info w-100" onclick="quickAdd(250)">
+                <i class="fa fa-glass-water me-1"></i>250ml
+              </button>
+            </div>
+            <div class="col-6">
+              <button class="btn btn-outline-info w-100" onclick="quickAdd(500)">
+                <i class="fa fa-bottle-water me-1"></i>500ml
+              </button>
+            </div>
+            <div class="col-6">
+              <button class="btn btn-outline-info w-100" onclick="quickAdd(750)">
+                <i class="fa fa-bottle-water me-1"></i>750ml
+              </button>
+            </div>
+            <div class="col-6">
+              <button class="btn btn-outline-info w-100" onclick="quickAdd(1000)">
+                <i class="fa fa-bottle-water me-1"></i>1L
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Water Intake History -->
+{% if water_logs %}
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fa fa-history me-2"></i>Today's Water Intake</h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      {% for log in water_logs %}
+      <div class="col-md-3 col-lg-2 mb-3">
+        <div class="card bg-light text-center">
+          <div class="card-body">
+            <div class="water-drop mb-2">
+              <i class="fa fa-tint fa-2x text-info"></i>
+            </div>
+            <h6 class="mb-1">{{ log.amount }}ml</h6>
+            <small class="text-muted">{{ log.date.strftime('%H:%M') }}</small>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Weekly Water Chart -->
+<div class="card mt-4">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fa fa-chart-bar me-2"></i>Weekly Water Intake</h5>
+  </div>
+  <div class="card-body">
+    <div class="chart-container">
+      <canvas id="waterChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<style>
+.water-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: conic-gradient(#17a2b8 0deg, #17a2b8 0deg, #e9ecef 0deg, #e9ecef 360deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 1s ease-in-out;
+}
+
+.water-circle-inner {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.water-drop {
+  animation: drop 2s ease-in-out infinite;
+}
+
+@keyframes drop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Water circle animation will be handled by JavaScript */
+
+.fa-glass-water::before {
+  content: "🥤";
+}
+
+.fa-bottle-water::before {
+  content: "💧";
+}
+</style>
+
+<script>
+function quickAdd(amount) {
+  document.getElementById('water_amount').value = amount;
+  document.querySelector('form').submit();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Animate water circle
+  const waterCircle = document.querySelector('.water-circle');
+  if (waterCircle) {
+    const percent = parseFloat(waterCircle.getAttribute('data-percent'));
+    waterCircle.style.setProperty('--percent', percent);
+    
+    // Animate the fill
+    setTimeout(() => {
+      waterCircle.style.transition = 'background 1s ease-in-out';
+      waterCircle.style.background = `conic-gradient(#17a2b8 0deg, #17a2b8 ${percent * 3.6}deg, #e9ecef ${percent * 3.6}deg, #e9ecef 360deg)`;
+    }, 100);
+  }
+  
+  // Add floating label behavior
+  const inputs = document.querySelectorAll('.form-control');
+  inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.parentElement.classList.add('focused');
+    });
+    input.addEventListener('blur', function() {
+      if (!this.value) {
+        this.parentElement.parentElement.classList.remove('focused');
+      }
+    });
+  });
+  
+  // Weekly Water Chart
+  const ctx = document.getElementById('waterChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      datasets: [{
+        label: 'Water Intake (ml)',
+        data: [2000, 1800, 2200, 1900, 2400, 2100, 2300],
+        backgroundColor: 'rgba(23, 162, 184, 0.8)',
+        borderColor: '#17a2b8',
+        borderWidth: 2,
+        borderRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 3000,
+          ticks: {
+            callback: function(value) {
+              return value + 'ml';
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  // Apply progress width from data-progress
+  document.querySelectorAll('.progress-bar[data-progress]')
+    .forEach(function(bar){
+      const val = parseFloat(bar.getAttribute('data-progress'));
+      if (!isNaN(val)) {
+        bar.style.width = `${Math.max(0, Math.min(100, val))}%`;
+      }
+    });
+});
+</script>
+{% endblock %} 

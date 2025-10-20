@@ -1,0 +1,372 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mb-4">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <h2><i class="fa fa-dumbbell me-2"></i>Exercise Tracker</h2>
+      <p class="text-muted mb-0">Log your workouts and track your fitness progress</p>
+    </div>
+    <div class="d-flex align-items-center">
+      <div class="avatar me-3">
+        {{ current_user.username[0].upper() }}
+      </div>
+      <div class="text-end">
+        <small class="text-muted">Today's Calories Burned</small>
+        <div class="h5 mb-0">{{ (total_calories_burned or 0)|round(0) }} cal</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Exercise Logging Form -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fa fa-plus-circle me-2"></i>Log Exercise</h5>
+  </div>
+  <div class="card-body">
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <div class="form-floating">
+            <select class="form-select" id="exercise_id" name="exercise_id" required>
+              <option value="">Select an exercise...</option>
+              {% for exercise in available_exercises %}
+                <option value="{{ exercise.id }}" data-calories="{{ exercise.calories_per_minute * 60 }}">
+                  {{ exercise.name }} ({{ exercise.category }})
+                </option>
+              {% endfor %}
+            </select>
+            <label for="exercise_id">Select Exercise</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-floating">
+            {{ form.duration(class_='form-control', id='duration', placeholder='Duration (minutes)') }}
+            <label for="duration">Duration (minutes)</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="calories_burned" placeholder="Calories Burned" readonly>
+            <label for="calories_burned">Calories Burned</label>
+          </div>
+        </div>
+        <div class="col-md-2 d-grid">
+          <button type="submit" class="btn btn-success btn-lg">
+            <i class="fa fa-plus me-2"></i>Log
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Exercise Categories -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fa fa-list me-2"></i>Exercise Categories</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          {% for category in categories %}
+          <div class="col-md-3 col-lg-2 mb-3">
+            <div class="card category-card text-center category-filter" data-category="{{ category }}">
+              <div class="card-body">
+                <div class="category-icon mb-2">
+                  {% if category == 'Cardio' %}
+                    <i class="fa fa-heartbeat fa-2x text-danger"></i>
+                  {% elif category == 'Strength' %}
+                    <i class="fa fa-dumbbell fa-2x text-primary"></i>
+                  {% elif category == 'Yoga' %}
+                    <i class="fa fa-pray fa-2x text-success"></i>
+                  {% elif category == 'Sports' %}
+                    <i class="fa fa-futbol fa-2x text-warning"></i>
+                  {% elif category == 'Swimming' %}
+                    <i class="fa fa-swimming-pool fa-2x text-info"></i>
+                  {% elif category == 'Cycling' %}
+                    <i class="fa fa-bicycle fa-2x text-secondary"></i>
+                  {% else %}
+                    <i class="fa fa-running fa-2x text-muted"></i>
+                  {% endif %}
+                </div>
+                <h6 class="card-title">{{ category }}</h6>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Exercise Database -->
+<div class="row">
+  {% for exercise in available_exercises %}
+  <div class="col-md-4 col-lg-3 mb-4">
+    <div class="card exercise-card h-100 selectable-exercise" data-exercise-id="{{ exercise.id }}" data-exercise-name="{{ exercise.name }}" data-calories="{{ exercise.calories_per_minute * 60 }}">
+      <div class="card-body text-center">
+        <div class="exercise-icon mb-3">
+          {% if exercise.category == 'Cardio' %}
+            <i class="fa fa-heartbeat fa-3x text-danger"></i>
+          {% elif exercise.category == 'Strength' %}
+            <i class="fa fa-dumbbell fa-3x text-primary"></i>
+          {% elif exercise.category == 'Yoga' %}
+            <i class="fa fa-pray fa-3x text-success"></i>
+          {% elif exercise.category == 'Sports' %}
+            <i class="fa fa-futbol fa-3x text-warning"></i>
+          {% elif exercise.category == 'Swimming' %}
+            <i class="fa fa-swimming-pool fa-3x text-info"></i>
+          {% elif exercise.category == 'Cycling' %}
+            <i class="fa fa-bicycle fa-3x text-secondary"></i>
+          {% else %}
+            <i class="fa fa-running fa-3x text-muted"></i>
+          {% endif %}
+        </div>
+        <h6 class="card-title">{{ exercise.name }}</h6>
+        <p class="card-text">
+          <span class="badge bg-primary me-2">{{ exercise.category }}</span>
+          <span class="badge bg-info">{{ (exercise.calories_per_minute * 60)|round(0) }} cal/hr</span>
+        </p>
+        <div class="exercise-details">
+          <small class="text-muted">
+            <i class="fa fa-info-circle me-1"></i>
+            {{ exercise.description }}
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Today's Exercise Log -->
+{% if today_exercises %}
+<div class="card mt-4">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fa fa-calendar-day me-2"></i>Today's Workouts</h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      {% for exercise in today_exercises %}
+      <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card bg-light">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-2">
+              <div class="exercise-icon me-3">
+                {% if exercise.exercise.category == 'Cardio' %}
+                  <i class="fa fa-heartbeat fa-2x text-danger"></i>
+                {% elif exercise.exercise.category == 'Strength' %}
+                  <i class="fa fa-dumbbell fa-2x text-primary"></i>
+                {% elif exercise.exercise.category == 'Yoga' %}
+                  <i class="fa fa-pray fa-2x text-success"></i>
+                {% elif exercise.exercise.category == 'Sports' %}
+                  <i class="fa fa-futbol fa-2x text-warning"></i>
+                {% elif exercise.exercise.category == 'Swimming' %}
+                  <i class="fa fa-swimming-pool fa-2x text-info"></i>
+                {% elif exercise.exercise.category == 'Cycling' %}
+                  <i class="fa fa-bicycle fa-2x text-secondary"></i>
+                {% else %}
+                  <i class="fa fa-running fa-2x text-muted"></i>
+                {% endif %}
+              </div>
+              <div>
+                <h6 class="mb-1">{{ exercise.exercise.name }}</h6>
+                <small class="text-muted">{{ exercise.exercise.category }}</small>
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="badge bg-primary me-2">{{ exercise.duration }} min</span>
+                <span class="badge bg-success">{{ exercise.calories_burned|round(0) }} cal</span>
+              </div>
+              <small class="text-muted">{{ exercise.date.strftime('%H:%M') }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<style>
+.exercise-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.exercise-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  border-color: var(--bs-primary);
+}
+
+.exercise-card:active {
+  transform: translateY(-2px);
+}
+
+.exercise-icon {
+  transition: all 0.3s ease;
+}
+
+.exercise-card:hover .exercise-icon {
+  transform: scale(1.1);
+}
+
+.category-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.category-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border-color: var(--bs-primary);
+}
+
+.category-icon {
+  transition: all 0.3s ease;
+}
+
+.category-card:hover .category-icon {
+  transform: scale(1.1);
+}
+
+.fa-pray::before {
+  content: "🧘";
+}
+
+.fa-futbol::before {
+  content: "⚽";
+}
+
+.fa-swimming-pool::before {
+  content: "🏊";
+}
+
+.fa-bicycle::before {
+  content: "🚴";
+}
+</style>
+
+<script>
+// Wire up click handlers to replace inline onclicks
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.selectable-exercise').forEach(function(card) {
+    card.addEventListener('click', function() {
+      const id = parseInt(card.getAttribute('data-exercise-id'));
+      const name = card.getAttribute('data-exercise-name');
+      const cal = parseFloat(card.getAttribute('data-calories'));
+      if (!isNaN(id) && !isNaN(cal)) selectExercise(id, name, cal);
+    });
+  });
+
+  document.querySelectorAll('.category-filter').forEach(function(card) {
+    card.addEventListener('click', function() {
+      const category = card.getAttribute('data-category');
+      if (category) filterByCategory(category);
+    });
+  });
+});
+function selectExercise(exerciseId, exerciseName, caloriesPerHour) {
+  document.getElementById('exercise_id').value = exerciseId;
+  document.getElementById('duration').focus();
+  
+  // Add visual feedback
+  const cards = document.querySelectorAll('.exercise-card');
+  cards.forEach(card => card.style.borderColor = 'transparent');
+  
+  const selectedCard = event.currentTarget;
+  selectedCard.style.borderColor = '#007bff';
+  
+  // Show notification
+  const toast = document.createElement('div');
+  toast.className = 'position-fixed top-0 end-0 p-3';
+  toast.style.zIndex = '1050';
+  toast.innerHTML = `
+    <div class="toast show" role="alert">
+      <div class="toast-header">
+        <i class="fa fa-check text-success me-2"></i>
+        <strong class="me-auto">Exercise Selected</strong>
+        <button type="button" class="btn-close" onclick="this.parentElement.parentElement.parentElement.remove()"></button>
+      </div>
+      <div class="toast-body">
+        ${exerciseName} (${caloriesPerHour} cal/hr) selected. Enter duration.
+      </div>
+    </div>
+  `;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.remove();
+    }
+  }, 3000);
+}
+
+function filterByCategory(category) {
+  // Add visual feedback
+  const cards = document.querySelectorAll('.category-card');
+  cards.forEach(card => card.style.borderColor = 'transparent');
+  
+  const selectedCard = event.currentTarget;
+  selectedCard.style.borderColor = '#007bff';
+  
+  // Filter exercise cards (you can implement actual filtering here)
+  const exerciseCards = document.querySelectorAll('.exercise-card');
+  exerciseCards.forEach(card => {
+    const cardCategory = card.querySelector('.badge').textContent;
+    if (category === 'All' || cardCategory === category) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// Calculate calories burned based on duration
+document.addEventListener('DOMContentLoaded', function() {
+  const durationInput = document.getElementById('duration');
+  const exerciseSelect = document.getElementById('exercise_id');
+  const caloriesInput = document.getElementById('calories_burned');
+  
+  function calculateCalories() {
+    const duration = parseFloat(durationInput.value) || 0;
+    const exerciseId = exerciseSelect.value;
+    
+    if (exerciseId && duration > 0) {
+      // Get calories per hour from the selected exercise
+      const selectedOption = exerciseSelect.options[exerciseSelect.selectedIndex];
+      const caloriesPerHour = parseFloat(selectedOption.getAttribute('data-calories')) || 0;
+      const caloriesBurned = (caloriesPerHour * duration) / 60;
+      caloriesInput.value = caloriesBurned.toFixed(0);
+    } else {
+      caloriesInput.value = '';
+    }
+  }
+  
+  durationInput.addEventListener('input', calculateCalories);
+  exerciseSelect.addEventListener('change', calculateCalories);
+  
+  // Add floating label behavior
+  const inputs = document.querySelectorAll('.form-control, .form-select');
+  inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.parentElement.classList.add('focused');
+    });
+    input.addEventListener('blur', function() {
+      if (!this.value) {
+        this.parentElement.parentElement.classList.remove('focused');
+      }
+    });
+  });
+});
+</script>
+{% endblock %} 

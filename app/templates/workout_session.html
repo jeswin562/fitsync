@@ -1,0 +1,743 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="workout-session">
+  <!-- Workout Header -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <div>
+        <h4 class="mb-0">{{ workout.name }}</h4>
+        <small class="text-muted">Started {{ workout.date.strftime('%H:%M') }}</small>
+      </div>
+      <div class="d-flex align-items-center">
+        <div class="workout-timer me-3">
+          <span id="timer">00:00</span>
+        </div>
+        <button class="btn btn-success" onclick="finishWorkout()">
+          <i class="fa fa-check me-1"></i>Finish Workout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Exercise Selection -->
+    <div class="col-md-4">
+      <div class="card exercise-selector">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="fa fa-search me-2"></i>Add Exercise</h6>
+        </div>
+        <div class="card-body">
+          <input type="text" class="form-control mb-3" id="exerciseSearch" placeholder="Search exercises...">
+          
+          {% for category, exercises in exercises_by_category.items() %}
+          <div class="exercise-category mb-3">
+            <h6 class="category-title" data-bs-toggle="collapse" data-bs-target="#category{{ loop.index }}" style="cursor: pointer;">
+              <i class="fa fa-chevron-down me-1"></i>{{ category }}
+            </h6>
+            <div class="collapse" id="category{{ loop.index }}">
+              {% for exercise in exercises %}
+              <div class="exercise-item" data-exercise-id="{{ exercise.id }}" data-exercise-name="{{ exercise.name }}">
+                <div class="d-flex justify-content-between align-items-center py-2">
+                  <div>
+                    <div class="exercise-name">{{ exercise.name }}</div>
+                    <small class="text-muted">{{ exercise.muscle_group }}</small>
+                  </div>
+                  <button class="btn btn-sm btn-outline-primary add-exercise-btn" type="button">
+                    <i class="fa fa-plus"></i>
+                  </button>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Workout -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="fa fa-list me-2"></i>Current Workout</h6>
+        </div>
+        <div class="card-body">
+          <div id="workout-exercises">
+            {% for workout_exercise in workout.workout_exercises %}
+            <div class="workout-exercise-item" data-workout-exercise-id="{{ workout_exercise.id }}">
+              <div class="exercise-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                  <h6 class="mb-0">{{ workout_exercise.exercise.name }}</h6>
+                  <button class="btn btn-sm btn-outline-info howto-btn" title="How to do it" type="button" data-exercise-name="{{ workout_exercise.exercise.name }}">
+                    <i class="fa fa-video"></i> How to
+                  </button>
+                </div>
+                <small class="text-muted">{{ workout_exercise.exercise.muscle_group }}</small>
+              </div>
+              
+              <!-- Sets for this exercise -->
+              <div class="sets-container">
+                {% for set in workout_exercise.sets %}
+                <div class="set-row d-flex align-items-center mb-2">
+                  <span class="set-number me-2">{{ set.set_number }}</span>
+                  <span class="set-details">
+                    {% if set.weight %}{{ set.weight }}kg {% endif %}
+                    {% if set.reps %}{{ set.reps }} reps{% endif %}
+                    {% if set.duration %}{{ set.duration }}s{% endif %}
+                    {% if set.distance %}{{ set.distance }}km{% endif %}
+                  </span>
+                </div>
+                {% endfor %}
+              </div>
+              
+              <!-- Add Set Form -->
+              <div class="add-set-form border-top pt-2">
+                <div class="row g-2">
+                  <div class="col-3">
+                    <input type="number" class="form-control form-control-sm workout-input" placeholder="Weight (kg)" name="weight" style="background-color: #495057 !important; color: #ffffff !important; border-color: #6c757d !important;">
+                  </div>
+                  <div class="col-3">
+                    <input type="number" class="form-control form-control-sm workout-input" placeholder="Reps" name="reps" style="background-color: #495057 !important; color: #ffffff !important; border-color: #6c757d !important;">
+                  </div>
+                  <div class="col-3">
+                    <input type="number" class="form-control form-control-sm workout-input" placeholder="Duration (s)" name="duration" style="background-color: #495057 !important; color: #ffffff !important; border-color: #6c757d !important;">
+                  </div>
+                  <div class="col-3">
+                    <button class="btn btn-sm btn-success w-100 add-set-btn" type="button" data-workout-exercise-id="{{ workout_exercise.id }}">
+                      <i class="fa fa-plus"></i> Set
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <hr>
+            {% endfor %}
+            
+            {% if not workout.workout_exercises %}
+            <div class="text-center py-4 text-muted" id="no-exercises">
+              <i class="fa fa-dumbbell fa-3x mb-3"></i>
+              <p>No exercises added yet. Select exercises from the left to start your workout!</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Finish Workout Modal -->
+<div class="modal fade" id="finishWorkoutModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Finish Workout</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Workout Duration</label>
+          <input type="number" class="form-control" id="workoutDuration" placeholder="Minutes">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Additional Notes</label>
+          <textarea class="form-control" id="workoutNotes" rows="3" placeholder="How did the workout feel?"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="submitFinishWorkout()">Complete Workout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Exercise How-To Modal -->
+<div class="modal fade" id="howToModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="howToTitle">Exercise Form Video</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="ratio ratio-16x9" id="howToPlayerContainer" style="display:none;">
+          <iframe id="howToPlayer" src="" title="Exercise how-to" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="mt-3" id="howToFallback">
+          <div class="alert alert-warning text-center">
+            <i class="fa fa-exclamation-triangle fa-2x mb-3"></i>
+            <h6><strong>Video Embed Blocked</strong></h6>
+            <p class="mb-3 small">Your network or browser is blocking YouTube embeds. No worries—you have options:</p>
+            <div class="d-grid gap-2">
+              <a id="howToYouTubeLink" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
+                <i class="fa fa-external-link-alt me-2"></i>Watch on YouTube
+              </a>
+              <button class="btn btn-outline-info" onclick="askAICoach()">
+                <i class="fa fa-robot me-2"></i>Get Step-by-Step Form Tips (AI Coach)
+              </button>
+            </div>
+            <hr class="my-3">
+            <p class="small text-muted mb-0">
+              <strong>Tip:</strong> To enable embeds, check your firewall, browser extensions, or network settings.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</div><style>
+.workout-timer {
+  font-family: 'Courier New', monospace;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #0d6efd;
+}
+
+/* Light mode styles */
+.exercise-category {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.category-title {
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.exercise-item {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.exercise-name {
+  font-weight: 500;
+  color: #212529;
+}
+
+.workout-exercise-item {
+  margin-bottom: 1.5rem;
+}
+
+.set-row {
+  background: rgba(108, 99, 255, 0.1);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(108, 99, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.set-row:hover {
+  background: rgba(108, 99, 255, 0.15);
+  border-color: rgba(108, 99, 255, 0.3);
+}
+
+.set-number {
+  background: linear-gradient(135deg, #6C63FF 0%, #5A52D5 100%);
+  color: white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(108, 99, 255, 0.3);
+}
+
+.exercise-selector {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Dark mode styles */
+[data-bs-theme="dark"] .exercise-category {
+  border-bottom: 1px solid #495057;
+}
+
+[data-bs-theme="dark"] .category-title {
+  color: #adb5bd;
+}
+
+[data-bs-theme="dark"] .exercise-item {
+  border-bottom: 1px solid #343a40;
+}
+
+[data-bs-theme="dark"] .exercise-name {
+  color: #e9ecef;
+}
+
+[data-bs-theme="dark"] .set-row {
+  background: #343a40 !important;
+  color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] .set-row span {
+  color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] .workout-timer {
+  color: #6ea8fe;
+}
+
+/* Ensure text inputs are visible in dark mode */
+[data-bs-theme="dark"] .form-control {
+  background-color: #495057;
+  border-color: #6c757d;
+  color: #e9ecef;
+}
+
+[data-bs-theme="dark"] .form-control:focus {
+  background-color: #495057;
+  border-color: #6ea8fe;
+  color: #e9ecef;
+}
+
+[data-bs-theme="dark"] .form-control::placeholder {
+  color: #adb5bd;
+}
+
+/* Fix weight/reps display in dark mode */
+[data-bs-theme="dark"] .set-details {
+  color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] .set-row .set-details {
+  color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] .exercise-header h6 {
+  color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] .exercise-header .text-muted {
+  color: #adb5bd !important;
+}
+
+/* Force all text in workout exercises to be visible */
+[data-bs-theme="dark"] .workout-exercise-item {
+  color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] .workout-exercise-item * {
+  color: inherit !important;
+}
+
+/* Debug - temporary bright colors to test selectors */
+[data-bs-theme="dark"] .set-details {
+  color: #00ff00 !important; /* Bright green for testing */
+  font-weight: bold !important;
+}
+
+[data-bs-theme="dark"] .set-row {
+  background: #343a40 !important;
+  border: 1px solid #00ff00 !important; /* Green border for testing */
+}
+
+/* Button Hover Animations */
+.btn {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Primary button hover */
+.btn-primary:hover {
+  background-color: #0b5ed7;
+  border-color: #0a58ca;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+}
+
+/* Success button hover */
+.btn-success:hover {
+  background-color: #157347;
+  border-color: #146c43;
+  box-shadow: 0 4px 12px rgba(25, 135, 84, 0.4);
+}
+
+/* Outline button hover */
+.btn-outline-primary:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+/* Small button special effects */
+.btn-sm:hover {
+  transform: translateY(-1px) scale(1.1);
+}
+
+/* Add ripple effect on click */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Icon rotation on hover */
+.btn:hover i {
+  transform: rotate(15deg) scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+.btn i {
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+/* Glow effect for success button */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(25, 135, 84, 0.6);
+  }
+}
+
+.btn-success:hover {
+  animation: glow 2s infinite;
+}
+
+/* Workout input styling - inline styles handle dark mode, this handles light mode detection */
+.workout-input {
+  transition: all 0.3s ease;
+}
+
+/* Placeholder styling for workout inputs */
+.workout-input::placeholder {
+  color: #adb5bd !important;
+  opacity: 1 !important;
+}
+
+.workout-input:focus::placeholder {
+  color: #6c757d !important;
+}
+
+</style>
+
+<script>
+// Enhanced styling for workout inputs with theme detection
+function updateWorkoutInputStyles() {
+  const themeLink = document.getElementById('theme-link');
+  const inputs = document.querySelectorAll('.workout-input');
+  
+  inputs.forEach(input => {
+    if (themeLink && themeLink.href.includes('darkly')) {
+      // Dark mode - force light text
+      input.setAttribute('style', 'background-color: #495057 !important; color: #ffffff !important; border-color: #6c757d !important;');
+    } else {
+      // Light mode - dark text on white
+      input.setAttribute('style', 'background-color: #ffffff !important; color: #212529 !important; border-color: #ced4da !important;');
+    }
+  });
+  
+  console.log('Workout inputs updated. Dark mode:', themeLink ? themeLink.href.includes('darkly') : 'unknown');
+}
+
+// Run immediately
+updateWorkoutInputStyles();
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', function() {
+  updateWorkoutInputStyles();
+  
+  // Update on input/focus
+  document.querySelectorAll('.workout-input').forEach(input => {
+    input.addEventListener('input', updateWorkoutInputStyles);
+    input.addEventListener('focus', updateWorkoutInputStyles);
+  });
+});
+
+// Multiple delays to catch theme loading
+setTimeout(updateWorkoutInputStyles, 50);
+setTimeout(updateWorkoutInputStyles, 200);
+setTimeout(updateWorkoutInputStyles, 500);
+setTimeout(updateWorkoutInputStyles, 1000);
+
+// Watch for theme changes
+const workoutThemeObserver = new MutationObserver(function() {
+  updateWorkoutInputStyles();
+  setTimeout(updateWorkoutInputStyles, 100);
+});
+const workoutThemeLink = document.getElementById('theme-link');
+if (workoutThemeLink) {
+  workoutThemeObserver.observe(workoutThemeLink, { attributes: true, attributeFilter: ['href'] });
+}
+
+// Listen for theme toggle
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.theme-toggle')) {
+    setTimeout(updateWorkoutInputStyles, 50);
+    setTimeout(updateWorkoutInputStyles, 200);
+    setTimeout(updateWorkoutInputStyles, 500);
+  }
+});
+</script>
+
+<script>
+let startTime = new Date('{{ workout.date.isoformat() }}');
+
+// Timer
+function updateTimer() {
+  const now = new Date();
+  const elapsed = Math.floor((now - startTime) / 1000);
+  const minutes = Math.floor(elapsed / 60);
+  const seconds = elapsed % 60;
+  document.getElementById('timer').textContent = 
+    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+setInterval(updateTimer, 1000);
+updateTimer();
+
+// Exercise search
+document.getElementById('exerciseSearch').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const exerciseItems = document.querySelectorAll('.exercise-item');
+  
+  exerciseItems.forEach(item => {
+    const exerciseName = item.dataset.exerciseName;
+    if (exerciseName.includes(searchTerm)) {
+      item.style.display = 'block';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+});
+
+// Add exercise to workout
+function addExerciseToWorkout(exerciseId, exerciseName) {
+  console.log('Adding exercise:', exerciseId, exerciseName);
+  
+  fetch(`/workout/{{ workout.id }}/add_exercise`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token() }}'
+    },
+    body: JSON.stringify({exercise_id: exerciseId})
+  })
+  .then(response => {
+    console.log('Response status:', response.status);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('Response data:', data);
+    if (data.success) {
+      alert(`${exerciseName} added to workout!`);
+      location.reload(); // Simple reload for now
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error adding exercise:', error);
+    alert('Failed to add exercise. Check console for details.');
+  });
+}
+
+// Add set to exercise
+function addSet(workoutExerciseId) {
+  const container = document.querySelector(`[data-workout-exercise-id="${workoutExerciseId}"] .add-set-form`);
+  const weight = container.querySelector('input[name="weight"]').value;
+  const reps = container.querySelector('input[name="reps"]').value;
+  const duration = container.querySelector('input[name="duration"]').value;
+  
+  const setData = {};
+  if (weight) setData.weight = parseFloat(weight);
+  if (reps) setData.reps = parseInt(reps);
+  if (duration) setData.duration = parseInt(duration);
+  
+  fetch(`/workout_exercise/${workoutExerciseId}/add_set`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token() }}'
+    },
+    body: JSON.stringify(setData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      location.reload(); // Simple reload for now
+    } else {
+      alert(data.error);
+    }
+  });
+}
+
+// Finish workout
+function finishWorkout() {
+  const elapsed = Math.floor((new Date() - startTime) / (1000 * 60));
+  document.getElementById('workoutDuration').value = elapsed;
+  new bootstrap.Modal(document.getElementById('finishWorkoutModal')).show();
+}
+
+function submitFinishWorkout() {
+  const duration = document.getElementById('workoutDuration').value;
+  const notes = document.getElementById('workoutNotes').value;
+  
+  fetch(`/workout/{{ workout.id }}/finish`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token() }}'
+    },
+    body: JSON.stringify({duration: parseInt(duration), notes: notes})
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      window.location.href = '/workouts';
+    } else {
+      alert(data.error);
+    }
+  });
+}
+
+// Show Exercise How-To modal
+function showExerciseHowTo(exerciseName) {
+  fetch(`/exercise/video?name=${encodeURIComponent(exerciseName)}`)
+    .then(res => res.json())
+    .then(data => {
+      const titleEl = document.getElementById('howToTitle');
+      const playerEl = document.getElementById('howToPlayer');
+      const playerContainer = document.getElementById('howToPlayerContainer');
+      const fallbackEl = document.getElementById('howToFallback');
+      const ytLink = document.getElementById('howToYouTubeLink');
+      
+      titleEl.textContent = data.success && data.title ? `${data.title} — ${exerciseName}` : `How to: ${exerciseName}`;
+      
+      if (data.success && data.embed) {
+        let embedUrl = data.embed;
+        let watchUrl = data.embed;
+        let isVimeo = embedUrl.includes('vimeo.com');
+        let isYouTube = embedUrl.includes('youtube');
+        
+        // Platform-specific handling
+        if (isYouTube) {
+          // Use youtube-nocookie for privacy
+          embedUrl = embedUrl.replace('youtube.com', 'youtube-nocookie.com');
+          watchUrl = embedUrl.replace('/embed/', '/watch?v=').replace('youtube-nocookie.com', 'youtube.com');
+          ytLink.textContent = 'Watch on YouTube';
+        } else if (isVimeo) {
+          // Vimeo embeds are generally more reliable
+          watchUrl = embedUrl.replace('player.vimeo.com/video/', 'vimeo.com/');
+          ytLink.textContent = 'Watch on Vimeo';
+        } else {
+          // Generic video link
+          watchUrl = embedUrl;
+          ytLink.textContent = 'Watch Video';
+        }
+        
+        ytLink.href = watchUrl;
+        
+        // Try to load the iframe
+        playerEl.src = embedUrl;
+        
+        // Vimeo typically loads better, so show it immediately
+        if (isVimeo) {
+          playerContainer.style.display = '';
+          fallbackEl.style.display = 'none';
+        } else {
+          // For YouTube, check if it loads
+          playerEl.onload = function() {
+            playerContainer.style.display = '';
+            fallbackEl.style.display = 'none';
+          };
+          
+          // If it takes too long, show fallback
+          setTimeout(() => {
+            if (playerContainer.style.display === 'none') {
+              fallbackEl.style.display = '';
+            }
+          }, 3000);
+        }
+      } else {
+        // No video found
+        playerEl.src = '';
+        playerContainer.style.display = 'none';
+        fallbackEl.style.display = '';
+        ytLink.href = '#';
+      }
+      
+      const modal = new bootstrap.Modal(document.getElementById('howToModal'));
+      modal.show();
+    })
+    .catch(() => {
+      const titleEl = document.getElementById('howToTitle');
+      const playerEl = document.getElementById('howToPlayer');
+      const playerContainer = document.getElementById('howToPlayerContainer');
+      const fallbackEl = document.getElementById('howToFallback');
+      titleEl.textContent = `How to: ${exerciseName}`;
+      playerEl.src = '';
+      playerContainer.style.display = 'none';
+      fallbackEl.style.display = '';
+      const modal = new bootstrap.Modal(document.getElementById('howToModal'));
+      modal.show();
+    });
+}
+
+function askAICoach() {
+  // Close the how-to modal and navigate to AI Coach
+  const modal = bootstrap.Modal.getInstance(document.getElementById('howToModal'));
+  if (modal) modal.hide();
+  window.location.href = '/ai-coach';
+}
+
+// Wire up buttons that replaced inline onclicks
+document.addEventListener('DOMContentLoaded', function() {
+  // Add exercise
+  document.querySelectorAll('.exercise-item .add-exercise-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      const container = e.currentTarget.closest('.exercise-item');
+      const id = parseInt(container.getAttribute('data-exercise-id'));
+      const name = container.getAttribute('data-exercise-name');
+      if (!isNaN(id)) addExerciseToWorkout(id, name);
+    });
+  });
+
+  // How-to
+  document.querySelectorAll('.howto-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      const name = e.currentTarget.getAttribute('data-exercise-name');
+      if (name) showExerciseHowTo(name);
+    });
+  });
+
+  // Add set
+  document.querySelectorAll('.add-set-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      const id = parseInt(e.currentTarget.getAttribute('data-workout-exercise-id'));
+      if (!isNaN(id)) addSet(id);
+    });
+  });
+});
+</script>
+{% endblock %}

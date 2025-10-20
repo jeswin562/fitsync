@@ -1,0 +1,801 @@
+/* ===================================
+   STUNNING FITNESS THEME
+   Vibrant, Modern, Eye-Catching
+   =================================== */
+
+:root {
+    /* Primary Color Palette - Electric Orange & Deep Purple */
+    --primary-orange: #FF6B35;
+    --primary-dark-orange: #FF4500;
+    --accent-purple: #6C63FF;
+    --accent-cyan: #00D9FF;
+    --accent-lime: #B4FF39;
+    
+    /* Background Colors */
+    --bg-dark: #0A0E27;
+    --bg-darker: #060818;
+    --bg-card: rgba(20, 25, 47, 0.8);
+    --bg-card-hover: rgba(30, 35, 60, 0.9);
+    
+    /* Text Colors */
+    --text-primary: #FFFFFF;
+    --text-secondary: #B8BEDD;
+    --text-muted: #7B7D96;
+    
+    /* Gradient Colors */
+    --gradient-orange: linear-gradient(135deg, #FF6B35 0%, #FF4500 100%);
+    --gradient-purple: linear-gradient(135deg, #6C63FF 0%, #5A52D5 100%);
+    --gradient-cyan: linear-gradient(135deg, #00D9FF 0%, #00B8D9 100%);
+    --gradient-fire: linear-gradient(135deg, #FF6B35 0%, #FF4500 50%, #D63301 100%);
+    --gradient-neon: linear-gradient(135deg, #B4FF39 0%, #00D9FF 50%, #6C63FF 100%);
+    
+    /* Glow Effects */
+    --glow-orange: 0 0 30px rgba(255, 107, 53, 0.5);
+    --glow-purple: 0 0 30px rgba(108, 99, 255, 0.5);
+    --glow-cyan: 0 0 30px rgba(0, 217, 255, 0.5);
+}
+
+/* ===================================
+   GLOBAL STYLES
+   =================================== */
+
+body {
+    background: var(--bg-darker);
+    color: var(--text-primary);
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Animated Background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(255, 107, 53, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(108, 99, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(0, 217, 255, 0.1) 0%, transparent 70%);
+    z-index: -1;
+    animation: backgroundPulse 15s ease-in-out infinite;
+}
+
+@keyframes backgroundPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* Geometric Patterns */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(30deg, rgba(255, 107, 53, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(255, 107, 53, 0.03) 87.5%, rgba(255, 107, 53, 0.03)),
+        linear-gradient(150deg, rgba(255, 107, 53, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(255, 107, 53, 0.03) 87.5%, rgba(255, 107, 53, 0.03)),
+        linear-gradient(30deg, rgba(108, 99, 255, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(108, 99, 255, 0.03) 87.5%, rgba(108, 99, 255, 0.03)),
+        linear-gradient(150deg, rgba(108, 99, 255, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(108, 99, 255, 0.03) 87.5%, rgba(108, 99, 255, 0.03));
+    background-size: 80px 80px;
+    z-index: -1;
+    opacity: 0.4;
+}
+
+/* ===================================
+   CARDS - MODERN GLASS EFFECT
+   =================================== */
+
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+    border-radius: 20px;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.card:hover::before {
+    left: 100%;
+}
+
+.card:hover {
+    transform: translateY(-10px) scale(1.02);
+    border-color: var(--primary-orange);
+    box-shadow: 
+        0 20px 60px rgba(255, 107, 53, 0.3),
+        0 0 40px rgba(255, 107, 53, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.card-header {
+    background: var(--gradient-orange);
+    border-bottom: 2px solid var(--primary-dark-orange);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 1.2rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* ===================================
+   BUTTONS - STUNNING EFFECTS
+   =================================== */
+
+.btn {
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0.75rem 2rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: none;
+}
+
+/* Override for form buttons that need to align with inputs */
+.card-body form .btn-lg {
+    padding: 0 1rem !important;
+    height: 58px !important;
+    line-height: 58px !important;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary {
+    background: var(--gradient-fire);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 8px 25px rgba(255, 107, 53, 0.6),
+        0 0 30px rgba(255, 107, 53, 0.4);
+}
+
+.btn-success {
+    background: var(--gradient-neon);
+    color: var(--bg-darker);
+    box-shadow: 0 4px 15px rgba(180, 255, 57, 0.4);
+    font-weight: 700;
+}
+
+.btn-success:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 8px 25px rgba(180, 255, 57, 0.6),
+        0 0 30px rgba(180, 255, 57, 0.4);
+}
+
+.btn-info {
+    background: var(--gradient-cyan);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 217, 255, 0.4);
+}
+
+.btn-info:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 8px 25px rgba(0, 217, 255, 0.6),
+        0 0 30px rgba(0, 217, 255, 0.4);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary-orange);
+    color: var(--primary-orange);
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: var(--gradient-orange);
+    color: white;
+    border-color: transparent;
+    transform: translateY(-3px);
+    box-shadow: var(--glow-orange);
+}
+
+/* ===================================
+   FORMS - FUTURISTIC INPUTS
+   =================================== */
+
+.form-control, .form-select {
+    background: rgba(20, 25, 47, 0.6);
+    border: 2px solid rgba(255, 107, 53, 0.3);
+    border-radius: 12px;
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    background: rgba(20, 25, 47, 0.8);
+    border-color: var(--primary-orange);
+    box-shadow: 
+        0 0 0 0.2rem rgba(255, 107, 53, 0.25),
+        0 0 20px rgba(255, 107, 53, 0.3);
+    color: var(--text-primary);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.form-floating > label {
+    color: var(--text-secondary);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: var(--primary-orange);
+}
+
+/* Fix form button alignment - force same height as form-floating */
+.card-body form .row.g-3.align-items-end {
+    align-items: flex-end !important;
+}
+
+.card-body form .row.g-3.align-items-end .btn-lg {
+    height: 58px !important;
+    min-height: 58px !important;
+    max-height: 58px !important;
+    padding: 0 1.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+}
+
+/* Make form-floating consistent */
+.form-floating {
+    min-height: 58px;
+}
+
+.form-floating > .form-control,
+.form-floating > .form-select {
+    height: 58px !important;
+}
+
+/* ===================================
+   NAVIGATION - SLEEK HEADER
+   =================================== */
+
+.navbar {
+    background: rgba(10, 14, 39, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(255, 107, 53, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    padding: 1rem 0;
+}
+
+.navbar .container-fluid {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.navbar-toggler {
+    order: 2;
+}
+
+.navbar-collapse {
+    order: 3;
+    flex-grow: 1;
+}
+
+.navbar-brand {
+    font-weight: 800;
+    font-size: 1.8rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1.5rem;
+    background: rgba(20, 25, 47, 0.6);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 107, 53, 0.3);
+    transition: all 0.4s ease;
+    order: 1;
+    margin-right: auto;
+}
+
+.navbar-brand::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 15px;
+    padding: 2px;
+    background: var(--gradient-fire);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.navbar-brand:hover::before {
+    opacity: 1;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 107, 53, 0.4);
+    border-color: var(--primary-orange);
+}
+
+.navbar-brand i {
+    font-size: 2rem;
+    background: var(--gradient-fire);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-right: 0.75rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.brand-text {
+    background: var(--gradient-neon);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 3px;
+    text-shadow: 0 0 30px rgba(180, 255, 57, 0.3);
+    font-weight: 900;
+}
+
+.navbar-nav {
+    display: flex;
+    justify-content: center;
+}
+
+.navbar-toggler {
+    order: 1;
+}
+
+.nav-link {
+    color: var(--text-secondary) !important;
+    font-weight: 600;
+    position: relative;
+    transition: all 0.3s ease;
+    margin: 0 0.5rem;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: var(--gradient-orange);
+    transform: translateX(-50%);
+    transition: width 0.3s ease;
+    border-radius: 2px;
+}
+
+.nav-link:hover {
+    color: var(--primary-orange) !important;
+    transform: translateY(-2px);
+}
+
+.nav-link:hover::before {
+    width: 80%;
+}
+
+.nav-link.active {
+    color: var(--primary-orange) !important;
+}
+
+.nav-link.active::before {
+    width: 100%;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 991px) {
+    .navbar-brand {
+        order: 1;
+        margin-right: auto;
+        font-size: 1.3rem;
+        padding: 0.4rem 1rem;
+    }
+    
+    .navbar-toggler {
+        order: 2;
+        margin-left: auto;
+    }
+    
+    .navbar-collapse {
+        order: 3;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .navbar-brand i {
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+    }
+    
+    .brand-text {
+        letter-spacing: 1.5px;
+    }
+    
+    .navbar-nav {
+        margin-top: 1rem;
+    }
+}
+
+/* ===================================
+   STATS & METRICS - EYE-CATCHING
+   =================================== */
+
+.stat-card {
+    background: var(--bg-card);
+    border: 2px solid transparent;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        var(--primary-orange) 90deg,
+        transparent 180deg
+    );
+    animation: rotateBorder 4s linear infinite;
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: var(--bg-card);
+    border-radius: 13px;
+    z-index: 1;
+}
+
+.stat-card > * {
+    position: relative;
+    z-index: 2;
+}
+
+@keyframes rotateBorder {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.stat-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 40px rgba(255, 107, 53, 0.4);
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    background: var(--gradient-neon);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(180, 255, 57, 0.3);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 0.5rem;
+}
+
+/* ===================================
+   PROGRESS BARS - ANIMATED
+   =================================== */
+
+.progress {
+    background: rgba(20, 25, 47, 0.6);
+    border-radius: 10px;
+    height: 12px;
+    overflow: visible;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar {
+    background: var(--gradient-fire);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* ===================================
+   TABLES - MODERN DESIGN
+   =================================== */
+
+.table {
+    color: var(--text-primary);
+}
+
+.table thead th {
+    background: var(--gradient-orange);
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+    padding: 1rem;
+}
+
+.table tbody tr {
+    background: rgba(20, 25, 47, 0.4);
+    border-bottom: 1px solid rgba(255, 107, 53, 0.1);
+    transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+    background: rgba(30, 35, 60, 0.6);
+    transform: scale(1.01);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
+}
+
+/* ===================================
+   BADGES - VIBRANT LABELS
+   =================================== */
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge.bg-success {
+    background: var(--gradient-neon) !important;
+    color: var(--bg-darker);
+    box-shadow: 0 4px 15px rgba(180, 255, 57, 0.4);
+}
+
+.badge.bg-primary {
+    background: var(--gradient-orange) !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+.badge.bg-info {
+    background: var(--gradient-cyan) !important;
+    box-shadow: 0 4px 15px rgba(0, 217, 255, 0.4);
+}
+
+/* ===================================
+   ALERTS - ATTENTION GRABBING
+   =================================== */
+
+.alert {
+    border-radius: 12px;
+    border: none;
+    padding: 1rem 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(180, 255, 57, 0.2), rgba(0, 217, 255, 0.2));
+    border-left: 4px solid var(--accent-lime);
+    color: var(--text-primary);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(214, 51, 1, 0.2));
+    border-left: 4px solid var(--primary-dark-orange);
+    color: var(--text-primary);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(108, 99, 255, 0.2));
+    border-left: 4px solid var(--accent-cyan);
+    color: var(--text-primary);
+}
+
+/* ===================================
+   SCROLLBAR - CUSTOM STYLING
+   =================================== */
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-darker);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gradient-orange);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gradient-fire);
+    box-shadow: var(--glow-orange);
+}
+
+/* ===================================
+   ANIMATIONS
+   =================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(255, 107, 53, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(255, 107, 53, 0.8);
+    }
+}
+
+.animate-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.pulse-glow {
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* ===================================
+   UTILITY CLASSES
+   =================================== */
+
+.text-gradient-orange {
+    background: var(--gradient-fire);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.text-gradient-neon {
+    background: var(--gradient-neon);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.text-gradient-cyan {
+    background: var(--gradient-cyan);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.glow-text {
+    text-shadow: 0 0 20px rgba(255, 107, 53, 0.6);
+}
+
+.glass-effect {
+    background: rgba(20, 25, 47, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .stat-number {
+    font-size: 2rem;
+  }
+  
+  .theme-toggle {
+    width: 50px;
+    height: 50px;
+    bottom: 20px;
+    right: 20px;
+  }
+}
+
+/* ========================================
+   Habit Form Button Alignment Fix
+   ======================================== */
+
+.habit-add-btn {
+    height: 58px !important;
+    min-height: 58px !important;
+    max-height: 58px !important;
+    padding: 0 !important;
+    line-height: 58px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 12px !important;
+}
+
+.habit-add-btn i {
+    line-height: 1 !important;
+    margin-right: 0.5rem !important;
+}

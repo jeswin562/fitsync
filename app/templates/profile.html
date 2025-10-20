@@ -1,0 +1,246 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-lg">
+      <div class="card-header bg-primary text-white">
+        <div class="d-flex align-items-center">
+          <div class="avatar avatar-large me-3">
+            {{ current_user.username[0].upper() }}
+          </div>
+          <div>
+            <h4 class="mb-1">Profile Settings</h4>
+            <p class="mb-0">Update your personal information and fitness goals</p>
+          </div>
+        </div>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-floating mb-3 position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-user"></i></span>
+                {{ form.name(class_='form-control ps-5', placeholder='Full Name') }}
+                <label for="name" class="ps-5">Full Name</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating mb-3 position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-birthday-cake"></i></span>
+                {{ form.age(class_='form-control ps-5', placeholder='Age') }}
+                <label for="age" class="ps-5">Age</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-floating mb-3 position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-ruler-vertical"></i></span>
+                {{ form.height(class_='form-control ps-5', placeholder='Height (cm)') }}
+                <label for="height" class="ps-5">Height (cm)</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating mb-3 position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-weight"></i></span>
+                {{ form.weight(class_='form-control ps-5', placeholder='Weight (kg)') }}
+                <label for="weight" class="ps-5">Weight (kg)</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-floating mb-3 position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-venus-mars"></i></span>
+                {{ form.gender(class_='form-select ps-5') }}
+                <label for="gender" class="ps-5">Gender</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating mb-3 position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-running"></i></span>
+                {{ form.activity_level(class_='form-select ps-5') }}
+                <label for="activity_level" class="ps-5">Activity Level</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-floating mb-3 position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-bullseye"></i></span>
+                {{ form.goal(class_='form-select ps-5') }}
+                <label for="goal" class="ps-5">Fitness Goal</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating mb-3 position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-calendar"></i></span>
+                {{ form.target_date(class_='form-control ps-5', type='date', placeholder='Target Date') }}
+                <label for="target_date" class="ps-5">Target Date</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary me-md-2">
+              <i class="fa fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+            {{ form.submit(class_='btn btn-primary') }}
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Fitness Stats Card -->
+    {% if current_user.profile %}
+    <div class="card mt-4 shadow">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fa fa-chart-bar me-2"></i>Your Fitness Stats</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3 text-center mb-3">
+            <div class="stats-card rounded p-3">
+              <i class="fa fa-calculator fa-2x mb-2"></i>
+              <h4>{{ bmr|round(0) }}</h4>
+              <small>BMR (kcal/day)</small>
+            </div>
+          </div>
+          <div class="col-md-3 text-center mb-3">
+            <div class="stats-card rounded p-3">
+              <i class="fa fa-fire fa-2x mb-2"></i>
+              <h4>{{ tdee|round(0) }}</h4>
+              <small>TDEE (kcal/day)</small>
+            </div>
+          </div>
+          <div class="col-md-3 text-center mb-3">
+            <div class="stats-card rounded p-3">
+              <i class="fa fa-bullseye fa-2x mb-2"></i>
+              <h4>{{ target_calories|round(0) }}</h4>
+              <small>Target (kcal/day)</small>
+            </div>
+          </div>
+          <div class="col-md-3 text-center mb-3">
+            <div class="stats-card rounded p-3">
+              <i class="fa fa-clock fa-2x mb-2"></i>
+              <h4>{{ days_to_goal }}</h4>
+              <small>Days to Goal</small>
+            </div>
+          </div>
+        </div>
+        
+        <!-- BMI and Health Info -->
+        <div class="row mt-3">
+          <div class="col-md-6">
+            <div class="card bg-light">
+              <div class="card-body">
+                <h6 class="card-title"><i class="fa fa-heartbeat me-2"></i>BMI Information</h6>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span>Your BMI:</span>
+                  <span class="badge bg-primary fs-6">{{ bmi|round(1) }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <span>Category:</span>
+                  <span class="badge bg-{{ 'success' if bmi < 25 else 'warning' if bmi < 30 else 'danger' }}">
+                    {{ 'Normal' if bmi < 25 else 'Overweight' if bmi < 30 else 'Obese' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card bg-light">
+              <div class="card-body">
+                <h6 class="card-title"><i class="fa fa-info-circle me-2"></i>Health Insights</h6>
+                <ul class="list-unstyled mb-0">
+                  <li><i class="fa fa-check text-success me-2"></i>Daily calorie target: {{ target_calories|round(0) }} kcal</li>
+                  <li><i class="fa fa-check text-success me-2"></i>Activity level: {{ current_user.profile.activity_level|title }}</li>
+                  <li><i class="fa fa-check text-success me-2"></i>Goal: {{ current_user.profile.goal|title }}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add floating label behavior
+  const inputs = document.querySelectorAll('.form-control, .form-select');
+  inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.parentElement.classList.add('focused');
+    });
+    input.addEventListener('blur', function() {
+      if (!this.value) {
+        this.parentElement.parentElement.classList.remove('focused');
+      }
+    });
+  });
+});
+</script>
+
+<style>
+/* Make icons lighter colored by default for better visibility */
+.position-absolute.text-secondary i {
+  color: #6c757d; /* Default gray */
+  font-size: 1rem;
+}
+
+/* Override for better visibility in all themes */
+.form-floating .position-absolute i {
+  opacity: 1 !important;
+}
+
+/* Inline style will be applied by JavaScript for theme detection */
+</style>
+
+<script>
+// Add dynamic icon color based on theme
+function updateIconColors() {
+  const themeLink = document.getElementById('theme-link');
+  const icons = document.querySelectorAll('.position-absolute.text-secondary');
+  
+  if (themeLink && themeLink.href.includes('darkly')) {
+    // Dark mode - use light gray
+    icons.forEach(icon => {
+      icon.style.color = '#adb5bd';
+    });
+  } else {
+    // Light mode - use default secondary color
+    icons.forEach(icon => {
+      icon.style.color = '#6c757d';
+    });
+  }
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', updateIconColors);
+
+// Also run after a short delay to catch theme initialization
+setTimeout(updateIconColors, 100);
+
+// Watch for theme changes
+const observer = new MutationObserver(updateIconColors);
+const themeLink = document.getElementById('theme-link');
+if (themeLink) {
+  observer.observe(themeLink, { attributes: true, attributeFilter: ['href'] });
+}
+
+// Also listen for theme toggle button clicks
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.theme-toggle')) {
+    setTimeout(updateIconColors, 50);
+  }
+});
+</script>
+{% endblock %} 

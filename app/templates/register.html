@@ -1,0 +1,73 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-4">
+    <div class="card shadow-lg">
+      <div class="card-body p-5">
+        <div class="text-center mb-4">
+          <div class="avatar avatar-large mx-auto mb-3">
+            <i class="fa fa-user-plus"></i>
+          </div>
+          <h2 class="card-title">Join Us!</h2>
+          <p class="text-muted">Start your fitness journey today</p>
+        </div>
+        
+        <form method="POST">
+          {{ form.hidden_tag() }}
+          
+          <div class="form-floating mb-3 position-relative">
+            <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-user"></i></span>
+            {{ form.username(class_='form-control ps-5', placeholder='Username') }}
+            <label for="username" class="ps-5">Username</label>
+          </div>
+          
+          <div class="form-floating mb-3 position-relative">
+            <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-envelope"></i></span>
+            {{ form.email(class_='form-control ps-5', placeholder='Email') }}
+            <label for="email" class="ps-5">Email</label>
+          </div>
+          
+          <div class="form-floating mb-3 position-relative">
+            <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-lock"></i></span>
+            {{ form.password(class_='form-control ps-5', placeholder='Password') }}
+            <label for="password" class="ps-5">Password</label>
+          </div>
+          
+          <div class="form-floating mb-3 position-relative">
+            <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-secondary" style="z-index:2;"><i class="fa fa-check-circle"></i></span>
+            {{ form.confirm_password(class_='form-control ps-5', placeholder='Confirm Password') }}
+            <label for="confirm_password" class="ps-5">Confirm Password</label>
+          </div>
+          
+          <div class="d-grid">
+            {{ form.submit(class_='btn btn-success btn-lg') }}
+          </div>
+        </form>
+        
+        <div class="text-center mt-4">
+          <p class="mb-0">Already have an account? 
+            <a href="{{ url_for('login') }}" class="text-decoration-none">Sign in</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add floating label behavior
+  const inputs = document.querySelectorAll('.form-control');
+  inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.parentElement.classList.add('focused');
+    });
+    input.addEventListener('blur', function() {
+      if (!this.value) {
+        this.parentElement.parentElement.classList.remove('focused');
+      }
+    });
+  });
+});
+</script>
+{% endblock %} 
