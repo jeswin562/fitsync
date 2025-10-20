@@ -218,6 +218,125 @@ User (1) ──────< (N) Habit (1) ──────< (N) HabitLog
    - Calories Burned = Exercise Duration × Calories per Minute
    - Net Calories = Calories Consumed - Calories Burned
 
+## 2.1 Data Flow Diagrams (DFD)
+
+This section illustrates how data moves through FitSync from user inputs to storage and responses. The DFDs are technology-agnostic and complement the System Architecture and Workflow sections.
+
+### DFD Level 0 (Context Diagram)
+
+```
++--------------------+           +------------------+
+|        User        |<--------->|  FitSync Web App |
++--------------------+           +------------------+
+                                                    |        ^
+                                                    |        |
+                                                    v        |
+                                          +--------------------+
+                                          |     SQLite DB     |
+                                          | (Users, Workouts, |
+                                          |  Exercises, Sets, |
+                                          |  Food, Water,     |
+                                          |  Habits, etc.)    |
+                                          +--------------------+
+                                                    |
+                                                    v
+                                          +--------------------+
+                                          |  Hugging Face API  |
+                                          |   (AI Coach Q/A)   |
+                                          +--------------------+
+```
+
+Entities: User (external), Hugging Face API (external)
+Process: FitSync Web App (Flask)
+Data Store: SQLite Database
+
+### DFD Level 1 (Top-level Decomposition)
+
+```
+                      +--------------------+
+                      |        User        |
+                      +----+-----------+---+
+                              |           ^
+               Credentials/Profile   |  Views/UI Actions (forms)
+                              v           |
++-------------------+-----------+------------------------------+
+|                  P1: Auth & Profile                          |
+|  - Register/Login (Flask-Login, CSRF)                        |
+|  - Profile view/update                                       |
++-----+----------------------+---------------------------------+
+         |                      |
+   Session cookie         Profile data
+         |                      v
+         |                 +----+-----+             AI Prompt/Context
+         |                 |   D1     |<--------------------------+
+         |                 | SQLite   |                           |
+         |                 | Users    |                           |
+         |                 +----------+                           |
+         |                                                      +--v------------------+
+         |               Workout CRUD                          |     P6: AI Coach     |
+         |          +------------------+                       | - Build prompt       |
+         |          |   P2: Workouts   |---------------------->| - Call HF API        |
+         |          | - Create session |  Exercises/Sets       | - Return guidance    |
+         |          | - Add exercises  | and session logs      +--+-------------------+
+         |          | - Log sets       |                           |
+         |          | - Finish session |   +-----------------+     |
+         |          +-------+----------+   |  External E1    |<----+
+         |                  |              | Hugging Face API |
+         |          +-------v-----+        +-----------------+
+         |          |    D1       |
+         |          | Workouts     (workouts, workout_exercises, sets)
+         |          +-------------+
+         |
+         |    Food logs (name, qty)             Water logs (ml)
+         |     +------------------+             +------------------+
+         |     |   P3: Nutrition  |             |   P4: Hydration  |
+         |     | - Food search    |             | - Log intake     |
+         |     | - Log entries    |             | - Daily totals   |
+         |     +--------+---------+             +--------+---------+
+         |              |                             |
+         |        +-----v-----+                 +-----v-----+
+         |        |    D1     |                 |    D1     |
+         |        |  Food     |                 |  Water    |
+         |        +-----------+                 +-----------+
+         |
+         |      Habit CRUD (name, freq, status)
+         |     +-------------------+
+         |     |   P5: Habits      |
+         |     | - Create/update   |
+         |     | - Toggle status   |
+         |     | - Daily streaks   |
+         |     +--------+----------+
+         |              |
+         |         +----v----+
+         |         |   D1    |
+         |         | Habits  |
+         |         +---------+
+         |
+         |  Dashboard (charts, summaries) reads from D1 across modules
+         +-------------------------------------------------------------->
+
+Legend:
+- P#: Process
+- D1: SQLite data store (tables partitioned by domain)
+- E1: External System (Hugging Face Inference API)
+```
+
+### Data Dictionary (selected flows)
+
+- Login Credentials: {email, password} → P1 → verifies against D1.Users; returns session cookie.
+- Profile Data: {name, height, weight, goals} ↔ P1 ↔ D1.Users.
+- Workout Session:
+   - Create: {user_id, date, title} → P2 → D1.Workouts.
+   - Add Exercise: {workout_id, exercise_id} → P2 → D1.WorkoutExercises.
+   - Add Set: {workout_exercise_id, reps, weight, duration} → P2 → D1.Sets.
+   - Finish: {workout_id, totals} → P2 → D1.Workouts.
+- Food Log: {food_id/name, serving_size, quantity, time} → P3 → D1.FoodLogs; reads D1.Food for calories.
+- Water Log: {ml, time} → P4 → D1.WaterLogs.
+- Habit Tracking: {habit_id, name, frequency, status, date} ↔ P5 ↔ D1.Habits, D1.HabitLogs.
+- AI Coach:
+   - Prompt: {user context, goal, recent stats} → P6 → E1 (Hugging Face).
+   - Response: {guidance, plan, tips} → P6 → UI (optional persist to history).
+
 ### Block Diagrams
 
 #### Diagram 1: Overall System Architecture Block Diagram
