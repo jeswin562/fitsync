@@ -1,8 +1,8 @@
 from flask import render_template, redirect, url_for, flash, request, jsonify, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 from . import db, login_manager, csrf
-from .models import User, Habit, HabitLog, Exercise, ExerciseLog, Food, FoodLog, WaterLog, Badge, Workout, WorkoutExercise, ExerciseSet
-from .forms import RegistrationForm, LoginForm, ProfileForm, HabitForm, ExerciseLogForm, FoodLogForm, WaterLogForm, WorkoutForm, ExerciseSelectionForm, ExerciseSetForm
+from .models import User, Habit, HabitLog, Exercise, ExerciseLog, Food, FoodLog, WaterLog, Badge, Workout, WorkoutExercise, ExerciseSet, FriendRequest, Friendship
+from .forms import RegistrationForm, LoginForm, ProfileForm, HabitForm, ExerciseLogForm, FoodLogForm, WaterLogForm, WorkoutForm, ExerciseSelectionForm, ExerciseSetForm, FriendSearchForm, FriendActionForm
 from .utils import calculate_bmr, calculate_tdee
 from .utils import get_exercise_video_info, normalize_video_url
 from .models import Exercise
@@ -645,3 +645,169 @@ def get_user_recent_data(user):
         'calories_consumed': round(calories_consumed, 0),
         'water_intake': water_intake,
     } 
+
+
+# ============================================
+# FRIENDS ROUTES
+# ============================================
+
+def _are_friends(user_id_a: int, user_id_b: int) -> bool:
+    if user_id_a == user_id_b:
+        return False
+    a, b = sorted([user_id_a, user_id_b])
+    return Friendship.query.filter_by(user_a_id=a, user_b_id=b).first() is not None
+
+
+def _friend_status(other_id: int):
+    """Return ('friends'|'incoming'|'outgoing'|'none', request_id_or_None)."""
+    if _are_friends(current_user.id, other_id):
+        return ('friends', None)
+    # Pending incoming
+    incoming = FriendRequest.query.filter_by(from_user_id=other_id, to_user_id=current_user.id, status='pending').first()
+    if incoming:
+        return ('incoming', incoming.id)
+    # Pending outgoing
+    outgoing = FriendRequest.query.filter_by(from_user_id=current_user.id, to_user_id=other_id, status='pending').first()
+    if outgoing:
+        return ('outgoing', outgoing.id)
+    return ('none', None)
+
+
+@app.route('/friends', methods=['GET', 'POST'])
+@login_required
+def friends():
+    search_form = FriendSearchForm()
+    action_form = FriendActionForm()
+
+    # Handle actions (send/accept/decline/cancel/remove)
+    if request.method == 'POST':
+        # CSRF handled by Flask-WTF forms on templates
+        target_id = int(request.form.get('user_id', 0))
+        action = request.form.get('action', '')
+        if not target_id or action not in {'send','accept','decline','cancel','remove'}:
+            flash('Invalid action', 'danger')
+            return redirect(url_for('friends'))
+
+        if action == 'send':
+            if target_id == current_user.id:
+                flash("You can't friend yourself.", 'warning')
+                return redirect(url_for('friends'))
+            if _are_friends(current_user.id, target_id):
+                flash('Already friends.', 'info')
+                return redirect(url_for('friends'))
+            existing = FriendRequest.query.filter_by(from_user_id=current_user.id, to_user_id=target_id, status='pending').first()
+            if existing:
+                flash('Request already sent.', 'info')
+            else:
+                req = FriendRequest(from_user_id=current_user.id, to_user_id=target_id)
+                db.session.add(req)
+                db.session.commit()
+                flash('Friend request sent!', 'success')
+
+        elif action == 'accept':
+            req = FriendRequest.query.filter_by(id=int(request.form.get('request_id', 0)), to_user_id=current_user.id, status='pending').first()
+            if not req:
+                flash('Request not found.', 'warning')
+            else:
+                a, b = sorted([req.from_user_id, req.to_user_id])
+                if not Friendship.query.filter_by(user_a_id=a, user_b_id=b).first():
+                    db.session.add(Friendship(user_a_id=a, user_b_id=b))
+                req.status = 'accepted'
+                db.session.commit()
+                flash('Friend request accepted.', 'success')
+
+        elif action == 'decline':
+            req = FriendRequest.query.filter_by(id=int(request.form.get('request_id', 0)), to_user_id=current_user.id, status='pending').first()
+            if req:
+                req.status = 'declined'
+                db.session.commit()
+                flash('Friend request declined.', 'info')
+
+        elif action == 'cancel':
+            req = FriendRequest.query.filter_by(id=int(request.form.get('request_id', 0)), from_user_id=current_user.id, status='pending').first()
+            if req:
+                req.status = 'cancelled'
+                db.session.commit()
+                flash('Friend request cancelled.', 'info')
+
+        elif action == 'remove':
+            a, b = sorted([current_user.id, target_id])
+            fr = Friendship.query.filter_by(user_a_id=a, user_b_id=b).first()
+            if fr:
+                db.session.delete(fr)
+                db.session.commit()
+                flash('Friend removed.', 'info')
+
+        return redirect(url_for('friends'))
+
+    # Build lists
+    # Friends list
+    friend_pairs = Friendship.query.filter(
+        db.or_(Friendship.user_a_id == current_user.id, Friendship.user_b_id == current_user.id)
+    ).all()
+    friend_ids = [fp.user_a_id if fp.user_b_id == current_user.id else fp.user_b_id for fp in friend_pairs]
+    friends = User.query.filter(User.id.in_(friend_ids)).order_by(User.username).all() if friend_ids else []
+
+    # Incoming requests
+    incoming = FriendRequest.query.filter_by(to_user_id=current_user.id, status='pending').all()
+    # Outgoing requests
+    outgoing = FriendRequest.query.filter_by(from_user_id=current_user.id, status='pending').all()
+
+    # Search users
+    results = []
+    q = (request.args.get('query') or '').strip()
+    if q:
+        results = User.query.filter(
+            db.and_(
+                User.id != current_user.id,
+                db.or_(User.username.ilike(f'%{q}%'), User.email.ilike(f'%{q}%'))
+            )
+        ).order_by(User.username).limit(25).all()
+
+    return render_template('friends.html',
+                           search_form=search_form,
+                           action_form=action_form,
+                           friends=friends,
+                           incoming=incoming,
+                           outgoing=outgoing,
+                           results=results,
+                           status_for=_friend_status)
+
+
+@app.route('/friends/<int:user_id>')
+@login_required
+def friend_progress(user_id):
+    # Only allow viewing if friends
+    if not _are_friends(current_user.id, user_id):
+        flash('You can only view progress for friends.', 'danger')
+        return redirect(url_for('friends'))
+
+    user = User.query.get_or_404(user_id)
+
+    today = date.today()
+    week_ago = today - timedelta(days=7)
+
+    # Fetch friend data similar to dashboard but read-only
+    habits = Habit.query.filter_by(user_id=user.id).limit(10).all()
+    exercises = ExerciseLog.query.filter_by(user_id=user.id).filter(ExerciseLog.date >= week_ago).all()
+    foods = FoodLog.query.filter_by(user_id=user.id).filter(FoodLog.date >= week_ago).all()
+    water_logs = WaterLog.query.filter_by(user_id=user.id).filter(WaterLog.date >= week_ago).all()
+
+    # Basic stats
+    habits_completed_today = HabitLog.query.join(Habit).filter(
+        Habit.user_id == user.id, HabitLog.date == today, HabitLog.completed == True
+    ).count()
+    total_water_today = sum(w.amount for w in water_logs if w.date == today)
+    total_food_cal_today = sum(f.total_calories for f in foods if f.date == today)
+    total_exercise_cal_today = sum(e.calories_burned for e in exercises if e.date == today)
+
+    return render_template('friend_progress.html',
+                           friend=user,
+                           habits=habits,
+                           exercises=exercises,
+                           foods=foods,
+                           water_logs=water_logs,
+                           habits_completed_today=habits_completed_today,
+                           total_water_today=total_water_today,
+                           total_food_cal_today=total_food_cal_today,
+                           total_exercise_cal_today=total_exercise_cal_today)

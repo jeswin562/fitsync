@@ -1,0 +1,153 @@
+{% extends 'layout.html' %}
+{% block title %}{{ friend.username }} - Progress{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="d-flex align-items-center mb-4">
+    <div class="avatar avatar-large me-3">{{ friend.username[0]|upper }}</div>
+    <div>
+      <h3 class="mb-0">{{ friend.username }}'s Progress</h3>
+      <div class="text-muted">Viewing recent activity</div>
+    </div>
+    <div class="ms-auto">
+      <a class="btn btn-outline-light" href="{{ url_for('friends') }}"><i class="fa fa-arrow-left me-2"></i>Back to Friends</a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card stats-card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-bold">Habits Today</div>
+              <div class="display-6">{{ habits_completed_today }}</div>
+            </div>
+            <i class="fa fa-check-circle fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stats-card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-bold">Water (ml)</div>
+              <div class="display-6">{{ '%.0f'|format(total_water_today) }}</div>
+            </div>
+            <i class="fa fa-tint fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stats-card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-bold">Cals In</div>
+              <div class="display-6">{{ '%.0f'|format(total_food_cal_today) }}</div>
+            </div>
+            <i class="fa fa-utensils fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stats-card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-bold">Cals Out</div>
+              <div class="display-6">{{ '%.0f'|format(total_exercise_cal_today) }}</div>
+            </div>
+            <i class="fa fa-dumbbell fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header"><i class="fa fa-list-check me-2"></i>Recent Habits</div>
+        <div class="card-body">
+          {% if habits %}
+            <ul class="list-group">
+              {% for h in habits %}
+              <li class="list-group-item">
+                <div class="fw-bold">{{ h.name }}</div>
+                <div class="text-muted">{{ h.description or 'No description' }}</div>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No habits found.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header"><i class="fa fa-heartbeat me-2"></i>Recent Exercises (7 days)</div>
+        <div class="card-body">
+          {% if exercises %}
+            <ul class="list-group">
+              {% for e in exercises %}
+              <li class="list-group-item d-flex justify-content-between">
+                <span>{{ e.exercise.name }} - {{ e.duration }} min</span>
+                <span class="text-muted">{{ e.date.strftime('%Y-%m-%d') }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No exercises logged recently.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header"><i class="fa fa-utensils me-2"></i>Recent Meals (7 days)</div>
+        <div class="card-body">
+          {% if foods %}
+            <ul class="list-group">
+              {% for f in foods %}
+              <li class="list-group-item d-flex justify-content-between">
+                <span>{{ f.food.name }} ({{ f.meal_type | capitalize }}) × {{ f.servings }}</span>
+                <span class="text-muted">{{ f.date.strftime('%Y-%m-%d') }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No meals logged recently.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header"><i class="fa fa-tint me-2"></i>Water Intake (7 days)</div>
+        <div class="card-body">
+          {% if water_logs %}
+            <ul class="list-group">
+              {% for w in water_logs %}
+              <li class="list-group-item d-flex justify-content-between">
+                <span>{{ '%.0f'|format(w.amount) }} ml</span>
+                <span class="text-muted">{{ w.date.strftime('%Y-%m-%d') }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No water logs recently.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

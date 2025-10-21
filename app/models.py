@@ -22,6 +22,37 @@ class User(UserMixin, db.Model):
     water_logs = db.relationship('WaterLog', backref='user', lazy=True)
     badges = db.relationship('Badge', backref='user', lazy=True)
 
+
+class FriendRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    to_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(20), default='pending')  # pending, accepted, declined, cancelled
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    from_user = db.relationship('User', foreign_keys=[from_user_id])
+    to_user = db.relationship('User', foreign_keys=[to_user_id])
+
+    __table_args__ = (
+        db.Index('ix_friendreq_from_to', 'from_user_id', 'to_user_id'),
+    )
+
+
+class Friendship(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    # Store a friendship once per pair with user_a_id < user_b_id to ensure uniqueness
+    user_a_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_b_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user_a = db.relationship('User', foreign_keys=[user_a_id])
+    user_b = db.relationship('User', foreign_keys=[user_b_id])
+
+    __table_args__ = (
+        db.UniqueConstraint('user_a_id', 'user_b_id', name='uq_friend_pair'),
+        db.Index('ix_friend_pair', 'user_a_id', 'user_b_id'),
+    )
+
 class Habit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)

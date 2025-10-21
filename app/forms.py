@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, IntegerField, FloatField, SelectField, BooleanField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, IntegerField, FloatField, SelectField, BooleanField, TextAreaField, HiddenField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 from .models import Exercise, Food
 from datetime import datetime
@@ -73,3 +73,14 @@ class ExerciseSetForm(FlaskForm):
     duration = IntegerField('Duration (seconds)', validators=[Optional()])
     distance = FloatField('Distance (km)', validators=[Optional()])
     submit = SubmitField('Add Set') 
+
+
+class FriendSearchForm(FlaskForm):
+    query = StringField('Search users by username or email', validators=[Optional()])
+    submit = SubmitField('Search')
+
+
+class FriendActionForm(FlaskForm):
+    user_id = HiddenField(validators=[DataRequired()])
+    action = HiddenField(validators=[DataRequired()])  # 'send', 'accept', 'decline', 'cancel', 'remove'
+    submit = SubmitField('Submit') 

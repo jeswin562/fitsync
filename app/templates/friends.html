@@ -1,0 +1,171 @@
+{% extends 'layout.html' %}
+{% block title %}Friends - FitSync{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header"><i class="fa fa-user-friends me-2"></i>Your Friends</div>
+        <div class="card-body">
+          {% if friends %}
+            <ul class="list-group">
+              {% for f in friends %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><span class="avatar me-2">{{ f.username[0]|upper }}</span>{{ f.username }}</span>
+                <div>
+                  <a class="btn btn-sm btn-outline-light" href="{{ url_for('friend_progress', user_id=f.id) }}">View</a>
+                  <form method="post" action="{{ url_for('friends') }}" class="d-inline">
+                    {{ csrf_token() }}
+                    <input type="hidden" name="user_id" value="{{ f.id }}">
+                    <input type="hidden" name="action" value="remove">
+                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Remove friend?')">Remove</button>
+                  </form>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No friends yet. Find people using the search.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header"><i class="fa fa-inbox me-2"></i>Incoming Requests</div>
+        <div class="card-body">
+          {% if incoming %}
+            <ul class="list-group">
+              {% for r in incoming %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ r.from_user.username }}</span>
+                <div>
+                  <form method="post" action="{{ url_for('friends') }}" class="d-inline">
+                    {{ csrf_token() }}
+                    <input type="hidden" name="user_id" value="{{ r.from_user_id }}">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
+                    <input type="hidden" name="action" value="accept">
+                    <button class="btn btn-sm btn-success">Accept</button>
+                  </form>
+                  <form method="post" action="{{ url_for('friends') }}" class="d-inline">
+                    {{ csrf_token() }}
+                    <input type="hidden" name="user_id" value="{{ r.from_user_id }}">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
+                    <input type="hidden" name="action" value="decline">
+                    <button class="btn btn-sm btn-outline-warning">Decline</button>
+                  </form>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No pending requests.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header"><i class="fa fa-paper-plane me-2"></i>Outgoing Requests</div>
+        <div class="card-body">
+          {% if outgoing %}
+            <ul class="list-group">
+              {% for r in outgoing %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ r.to_user.username }}</span>
+                <form method="post" action="{{ url_for('friends') }}" class="d-inline">
+                  {{ csrf_token() }}
+                  <input type="hidden" name="user_id" value="{{ r.to_user_id }}">
+                  <input type="hidden" name="request_id" value="{{ r.id }}">
+                  <input type="hidden" name="action" value="cancel">
+                  <button class="btn btn-sm btn-outline-secondary">Cancel</button>
+                </form>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No outgoing requests.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header"><i class="fa fa-search me-2"></i>Find Friends</div>
+        <div class="card-body">
+          <form method="get" action="{{ url_for('friends') }}" class="row g-2">
+            <div class="col-md-10">
+              <input class="form-control" type="text" name="query" value="{{ request.args.get('query','') }}" placeholder="Search by username or email">
+            </div>
+            <div class="col-md-2 d-grid">
+              <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Search Results</div>
+        <div class="card-body">
+          {% if results %}
+            <ul class="list-group">
+              {% for u in results %}
+              {% set status, req_id = status_for(u.id) %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="avatar me-2">{{ u.username[0]|upper }}</span>
+                  <strong>{{ u.username }}</strong>
+                  <div class="text-muted" style="font-size: 0.9rem;">{{ u.email }}</div>
+                </div>
+                <div>
+                  {% if status == 'friends' %}
+                    <a class="btn btn-sm btn-outline-light" href="{{ url_for('friend_progress', user_id=u.id) }}">View</a>
+                    <form method="post" action="{{ url_for('friends') }}" class="d-inline">
+                      {{ csrf_token() }}
+                      <input type="hidden" name="user_id" value="{{ u.id }}">
+                      <input type="hidden" name="action" value="remove">
+                      <button class="btn btn-sm btn-outline-danger">Remove</button>
+                    </form>
+                  {% elif status == 'incoming' %}
+                    <form method="post" action="{{ url_for('friends') }}" class="d-inline">
+                      {{ csrf_token() }}
+                      <input type="hidden" name="user_id" value="{{ u.id }}">
+                      <input type="hidden" name="request_id" value="{{ req_id }}">
+                      <input type="hidden" name="action" value="accept">
+                      <button class="btn btn-sm btn-success">Accept</button>
+                    </form>
+                    <form method="post" action="{{ url_for('friends') }}" class="d-inline">
+                      {{ csrf_token() }}
+                      <input type="hidden" name="user_id" value="{{ u.id }}">
+                      <input type="hidden" name="request_id" value="{{ req_id }}">
+                      <input type="hidden" name="action" value="decline">
+                      <button class="btn btn-sm btn-outline-warning">Decline</button>
+                    </form>
+                  {% elif status == 'outgoing' %}
+                    <form method="post" action="{{ url_for('friends') }}" class="d-inline">
+                      {{ csrf_token() }}
+                      <input type="hidden" name="user_id" value="{{ u.id }}">
+                      <input type="hidden" name="request_id" value="{{ req_id }}">
+                      <input type="hidden" name="action" value="cancel">
+                      <button class="btn btn-sm btn-outline-secondary">Cancel</button>
+                    </form>
+                  {% else %}
+                    <form method="post" action="{{ url_for('friends') }}" class="d-inline">
+                      {{ csrf_token() }}
+                      <input type="hidden" name="user_id" value="{{ u.id }}">
+                      <input type="hidden" name="action" value="send">
+                      <button class="btn btn-sm btn-primary">Add Friend</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No results. Try searching for a username or email.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
